@@ -1485,13 +1485,17 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
 
         <div class="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 no-scrollbar text-[11px]">
           <span class="text-slate-500 text-[10px] whitespace-nowrap">Sugestões:</span>
-          <button type="button" onclick="pesquisarTermoPredefinido('Heineken cerveja')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Heineken</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Whisky Johnnie Walker')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Whisky</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Cachaça Pitú')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Cachaça</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Gin Tanqueray')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gin</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Vinho Tinto')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Vinho</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Heineken')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Heineken</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Brahma')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Brahma</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Skol')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Skol</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Whisky')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Whisky</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Jack Daniels')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Jack Daniel's</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Vodka')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Vodka</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Pitú')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Cachaça</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Gin')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gin</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Vinho')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Vinho</button>
           <button type="button" onclick="pesquisarTermoPredefinido('Red Bull')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Red Bull</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Gelo pacote')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gelo</button>
+          <button type="button" onclick="pesquisarTermoPredefinido('Gelo')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gelo</button>
         </div>
       </div>
 
@@ -1511,84 +1515,207 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     </div>
   </div>
 
+  <!-- ================= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (SEM BLOQUEIOS) ================= -->
+  <div id="modalConfirmExclusao" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-sm bg-[#111827] border border-gray-800 rounded-3xl p-5 shadow-2xl relative text-center">
+      <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center text-xl mx-auto mb-3">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 class="font-bold text-base text-white">Remover Produto?</h3>
+      <p id="txtConfirmExclusaoNome" class="text-xs text-slate-300 font-semibold mt-1 truncate">Tem certeza?</p>
+      <p class="text-[11px] text-slate-500 mt-1">Essa bebida será excluída do catálogo e da nuvem do Supabase.</p>
+      
+      <input type="hidden" id="idProdutoParaExcluir" value="">
+
+      <div class="grid grid-cols-2 gap-2 mt-5">
+        <button 
+          type="button" 
+          onclick="fecharModalConfirmExclusao()" 
+          class="py-2.5 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-slate-300 font-semibold text-xs transition"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          id="btnConfirmarExclusaoAcao"
+          onclick="confirmarExclusaoProdutoDefinitivo()" 
+          class="py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition shadow-lg shadow-red-600/30 active:scale-95 flex items-center justify-center gap-1.5"
+        >
+          <i class="fa-solid fa-trash"></i>
+          <span>Sim, Excluir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= NOTIFICAÇÃO TOAST ================= -->
   <div id="toastContainer" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
   <script>
     /* -------------------------------------------------------------
-       ESTADO GLOBAL DA APLICAÇÃO
+       BUSCA DE IMAGENS NA WEB E GALERIA INTELIGENTE
        ------------------------------------------------------------- */
-    const ESTOQUE_LOCAL_PADRAO = [
-      {
-        id: "prod-1",
-        nome: "Cerveja Heineken Long Neck",
-        categoria: "cervejas",
-        volume: "330ml",
-        preco: 8.50,
-        estoque_qtd: 48,
-        imagem: "https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-2",
-        nome: "Cerveja Corona Extra",
-        categoria: "cervejas",
-        volume: "330ml",
-        preco: 9.00,
-        estoque_qtd: 32,
-        imagem: "https://images.unsplash.com/photo-1538488881522-4321453a9943?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-3",
-        nome: "Whisky Johnnie Walker Black Label",
-        categoria: "whisky",
-        volume: "1000ml",
-        preco: 169.90,
-        estoque_qtd: 12,
-        imagem: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-4",
-        nome: "Cachaça Ypióca 150 Anos",
-        categoria: "destilados",
-        volume: "700ml",
-        preco: 89.90,
-        estoque_qtd: 10,
-        imagem: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-5",
-        nome: "Vinho Casillero del Diablo Cabernet",
-        categoria: "vinhos",
-        volume: "750ml",
-        preco: 58.00,
-        estoque_qtd: 20,
-        imagem: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-6",
-        nome: "Energético Red Bull Energy Drink",
-        categoria: "sem-alcool",
-        volume: "250ml",
-        preco: 11.50,
-        estoque_qtd: 60,
-        imagem: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
-      },
-      {
-        id: "prod-7",
-        nome: "Gelo Filtrado em Cubos",
-        categoria: "outros",
-        volume: "Pacote 5kg",
-        preco: 14.00,
-        estoque_qtd: 40,
-        imagem: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500&auto=format&fit=crop&q=70",
-        disponivel: true
+    const BANCO_FOTOS_BEBIDAS = [
+      // Cervejas
+      { tags: ['heineken', 'cerveja', 'long neck'], titulo: 'Heineken Long Neck', url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['corona', 'cerveja', 'long neck', 'extra'], titulo: 'Corona Extra', url: 'https://images.unsplash.com/photo-1538488881522-4321453a9943?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['brahma', 'cerveja', 'lata', 'duplo malte', 'chopp'], titulo: 'Cerveja Brahma / Chopp', url: 'https://images.unsplash.com/photo-1608270190989-c56df3d2e293?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['skol', 'cerveja', 'lata', 'pilsen'], titulo: 'Cerveja Skol Lata / Garrafa', url: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['amstel', 'cerveja', 'puro malte'], titulo: 'Cerveja Amstel Puro Malte', url: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['budweiser', 'cerveja', 'bud'], titulo: 'Cerveja Budweiser', url: 'https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['stella', 'stella artois', 'cerveja'], titulo: 'Stella Artois', url: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['cerveja', 'artesanal', 'ipa', 'pilsen'], titulo: 'Cerveja Artesanal no Gelo', url: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&auto=format&fit=crop&q=80' },
+
+      // Whiskys
+      { tags: ['johnnie walker', 'red label', 'black label', 'whisky'], titulo: 'Johnnie Walker Black Label', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['jack daniels', 'jack daniel', 'whiskey', 'bourbon'], titulo: 'Jack Daniel\'s Tennessee Whiskey', url: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['chivas', 'whisky', 'chivas regal', '12 anos'], titulo: 'Whisky Chivas Regal', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['white horse', 'whisky', 'cavalo branco'], titulo: 'Whisky Escocês Premium', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['whisky', 'whiskey', 'gelo', 'copo'], titulo: 'Whisky com Gelo', url: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=600&auto=format&fit=crop&q=80' },
+
+      // Cachaças & Destilados
+      { tags: ['pitu', 'pitú', 'cachaca', 'cachaça', 'pinga', 'aguardente'], titulo: 'Cachaça Tradicional / Pitú', url: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['51', 'cachaça 51', 'cachaca 51', 'pinga'], titulo: 'Cachaça Brasileira / Caninha', url: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['ypióca', 'ypiota', 'cachaca ouro', 'cachaça envelhecida'], titulo: 'Cachaça Envelhecida Ouro', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['vodka', 'smirnoff', 'absolut'], titulo: 'Vodka Importada Garrafa', url: 'https://images.unsplash.com/photo-1550985543-f47f38aeee65?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['gin', 'tanqueray', 'beefeater', 'gordons'], titulo: 'Gin Tanqueray / Garrafa', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['tequila', 'jose cuervo', 'shot'], titulo: 'Tequila Ouro / Prata', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+
+      // Vinhos & Espumantes
+      { tags: ['vinho', 'tinto', 'cabernet', 'malbec', 'casillero'], titulo: 'Vinho Tinto Cabernet / Malbec', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['vinho suave', 'garrafa vinho', 'vinho seco'], titulo: 'Garrafa de Vinho Fino', url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['espumante', 'champagne', 'chandon', 'prosecco'], titulo: 'Espumante / Champagne Gelado', url: 'https://images.unsplash.com/photo-1568644396922-5c3bfae12521?w=600&auto=format&fit=crop&q=80' },
+
+      // Sem Álcool & Energéticos
+      { tags: ['red bull', 'energetico', 'energético', 'redbull'], titulo: 'Red Bull Energy Drink', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['monster', 'monster energy', 'energetico'], titulo: 'Energético Monster Lata', url: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['coca cola', 'coca-cola', 'refrigerante', 'refris'], titulo: 'Coca-Cola Gelada Lata / Garrafa', url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['guarana', 'guaraná antarctica', 'refrigerante'], titulo: 'Refrigerante Guaraná Gelado', url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['agua', 'água mineral', 'com gas', 'sem gas'], titulo: 'Água Mineral Garrafa', url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80' },
+
+      // Conveniência, Gelo & Petiscos
+      { tags: ['gelo', 'cubo', 'pacote de gelo', 'saco de gelo'], titulo: 'Gelo em Cubos Filtrado', url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['carvao', 'carvão', 'churrasco', 'saco carvão'], titulo: 'Carvão Vegetal para Churrasco', url: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['snack', 'petisco', 'amendoim', 'salgadinho'], titulo: 'Petisco / Amendoim para Bebida', url: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=600&auto=format&fit=crop&q=80' }
+    ];
+
+    function abrirModalBuscaImagens() {
+      const nomeDigitado = document.getElementById('prodNome').value.trim();
+      const input = document.getElementById('webSearchQuery');
+      if (input) {
+        input.value = nomeDigitado || '';
       }
+      document.getElementById('webImageSearchModal').classList.remove('hidden');
+      pesquisarFotosWeb();
+    }
+
+    function fecharModalBuscaImagens() {
+      document.getElementById('webImageSearchModal').classList.add('hidden');
+    }
+
+    function pesquisarTermoPredefinido(termo) {
+      document.getElementById('webSearchQuery').value = termo;
+      pesquisarFotosWeb();
+    }
+
+    async function pesquisarFotosWeb() {
+      const queryOriginal = (document.getElementById('webSearchQuery')?.value || '').trim();
+      const query = queryOriginal.toLowerCase();
+      const container = document.getElementById('webSearchResults');
+
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="h-48 flex flex-col items-center justify-center text-slate-400">
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-500 mb-2"></i>
+          <span class="text-xs">Buscando as melhores imagens...</span>
+        </div>
+      `;
+
+      let fotosEncontradas = [];
+
+      // 1. Busca primeiro no banco inteligente local otimizado
+      if (query) {
+        const palavrasBusca = query.split(' ').filter(w => w.length > 1);
+        fotosEncontradas = BANCO_FOTOS_BEBIDAS.filter(item => {
+          const tituloMatch = item.titulo.toLowerCase().includes(query);
+          const tagsMatch = item.tags.some(tag => {
+            return palavrasBusca.some(palavra => tag.includes(palavra) || palavra.includes(tag));
+          });
+          return tituloMatch || tagsMatch;
+        });
+      }
+
+      // 2. Se a busca local retornou poucas fotos e o usuário digitou algo específico, busca na Wikipédia aberta
+      if (fotosEncontradas.length < 4 && query) {
+        try {
+          const termoBusca = encodeURIComponent(queryOriginal);
+          const urlWiki = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${termoBusca}+beverage+drink&gsrlimit=6&prop=pageimages&pithumbsize=600&format=json&origin=*`;
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+          const res = await fetch(urlWiki, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.query && data.query.pages) {
+              Object.values(data.query.pages).forEach(p => {
+                if (p.thumbnail && p.thumbnail.source) {
+                  fotosEncontradas.push({
+                    titulo: p.title,
+                    url: p.thumbnail.source
+                  });
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Busca externa web abortada ou sem conexão:', e);
+        }
+      }
+
+      // 3. Fallback: Se ainda estiver vazio ou o usuário só abriu sem digitar nada, exibe o catálogo completo de bebidas prontas
+      if (fotosEncontradas.length === 0) {
+        fotosEncontradas = BANCO_FOTOS_BEBIDAS;
+      }
+
+      // Remove eventuais URLs duplicadas
+      const mapaUrls = new Set();
+      const fotosFinais = fotosEncontradas.filter(f => {
+        if (mapaUrls.has(f.url)) return false;
+        mapaUrls.add(f.url);
+        return true;
+      });
+
+      container.innerHTML = `
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-1">
+          ${fotosFinais.map(f => `
+            <div 
+              onclick="selecionarFotoWeb('${f.url}', '${f.titulo.replace(/'/g, "\\'")}')" 
+              class="cursor-pointer group relative bg-gray-900 border border-gray-800 hover:border-amber-500 rounded-xl overflow-hidden p-1.5 transition flex flex-col items-center hover:scale-[1.02] shadow"
+            >
+              <div class="w-full aspect-square overflow-hidden rounded-lg bg-black/40 relative">
+                <img src="${f.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" onerror="this.src='https://placehold.co/300x300/1e293b/f59e0b?text=BEBIDAS+%26+CIA'">
+              </div>
+              <p class="text-[10px] text-slate-300 font-semibold truncate w-full text-center mt-1.5 px-1">${f.titulo}</p>
+              <span class="text-[9px] text-amber-400 font-bold mt-0.5 opacity-90 group-hover:text-amber-300">
+                <i class="fa-solid fa-check mr-0.5"></i>Usar esta
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function selecionarFotoWeb(url, titulo) {
+      fotoBase64Atual = url;
+      document.getElementById('prodImagem').value = url;
+      definirPreviaImagem(url, titulo);
+      fecharModalBuscaImagens();
+      showToast(`Foto de "${titulo}" selecionada!`, 'success');
+    }
     ];
 
     const DIAS_SEMANA_NOMES = [
@@ -1604,6 +1731,7 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     let fotoBase64Atual = '';
     let pollingInterval = null;
     let supabaseClient = null;
+    let bancoInicializadoFlag = localStorage.getItem('bebidascia_seed_done') === 'true';
 
     let periodoVendaAtivo = 'hoje'; // 'hoje' ou 'mes'
     let mesFiltroAtivo = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
@@ -2507,7 +2635,7 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
                 <i class="fa-solid fa-pen text-xs"></i>
               </button>
               <button 
-                onclick="excluirProduto('${item.id}')" 
+                onclick="solicitarExclusaoProduto('${item.id}')" 
                 class="p-1.5 rounded-lg bg-gray-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 transition"
                 title="Excluir"
               >
@@ -2517,6 +2645,63 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
           </td>
         </tr>
       `).join('');
+    }
+
+    function solicitarExclusaoProduto(id) {
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
+
+      document.getElementById('idProdutoParaExcluir').value = id;
+      document.getElementById('txtConfirmExclusaoNome').innerText = prod.nome;
+      document.getElementById('modalConfirmExclusao').classList.remove('hidden');
+    }
+
+    function fecharModalConfirmExclusao() {
+      document.getElementById('modalConfirmExclusao').classList.add('hidden');
+      document.getElementById('idProdutoParaExcluir').value = '';
+    }
+
+    async function confirmarExclusaoProdutoDefinitivo() {
+      const id = document.getElementById('idProdutoParaExcluir').value;
+      if (!id) return;
+
+      const prod = produtos.find(p => p.id === id);
+      const nomeRemovido = prod ? prod.nome : 'Produto';
+
+      // 1. Remove da memória local imediatamente
+      produtos = produtos.filter(p => p.id !== id);
+      salvarProdutosLocalmente();
+      renderizarTabelaDono();
+      renderizarCatalogo();
+      fecharModalConfirmExclusao();
+
+      // 2. Se a lista ficou vazia de propósito, marca flag para não reinjetar catálogo de exemplo
+      if (produtos.length === 0) {
+        localStorage.setItem('bebidascia_seed_done', 'true');
+        bancoInicializadoFlag = true;
+      }
+
+      // 3. Deleta direto na tabela do Supabase
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
+          if (error) {
+            console.warn('Erro ao deletar no Supabase:', error);
+            showToast('Erro ao remover no Supabase: ' + error.message, 'error');
+            return;
+          }
+          console.log(`Produto ${id} deletado com sucesso no Supabase.`);
+        } catch (err) {
+          console.warn('Falha de conexão ao deletar no Supabase:', err);
+        }
+      }
+
+      showToast(`"${nomeRemovido}" excluído do estoque e da nuvem!`, 'success');
+    }
+
+    // Mantido por compatibilidade
+    function excluirProduto(id) {
+      solicitarExclusaoProduto(id);
     }
 
     async function toggleDisponibilidade(id) {
@@ -3526,20 +3711,28 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     async function carregarProdutosSupabase() {
       if (!supabaseClient) return;
       try {
-        const { data, error } = await supabaseClient.from('produtos').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient
+          .from('produtos')
+          .select('*')
+          .order('created_at', { ascending: false });
         
         if (error) {
           console.warn('Erro no fetch Supabase produtos:', error);
           return;
         }
 
-        // Se a nuvem ainda estiver vazia, sobe o catálogo padrão inicial para a nuvem automaticamente!
-        if (!data || data.length === 0) {
-          console.log('Banco na nuvem vazio. Enviando produtos iniciais...');
+        // Se o banco na nuvem estiver completamente vazio e o usuário AINDA NÃO tiver configurado o catálogo
+        if ((!data || data.length === 0) && !bancoInicializadoFlag) {
+          console.log('Primeiro acesso: Enviando catálogo inicial ao Supabase...');
           await supabaseClient.from('produtos').upsert(ESTOQUE_LOCAL_PADRAO);
           produtos = [...ESTOQUE_LOCAL_PADRAO];
+          localStorage.setItem('bebidascia_seed_done', 'true');
+          bancoInicializadoFlag = true;
         } else {
-          produtos = data;
+          // Se data veio vazio porque o dono deletou tudo, aceita lista vazia normalmente
+          produtos = data || [];
+          localStorage.setItem('bebidascia_seed_done', 'true');
+          bancoInicializadoFlag = true;
         }
 
         salvarProdutosLocalmente();
