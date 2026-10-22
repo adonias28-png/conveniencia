@@ -682,6 +682,163 @@
   </section>
 
   <!-- ================= MODAL DE CONTABILIDADE E VENDAS (DIÁRIO / MENSAL) ================= -->
+  <div id="modalRelatorioVendas" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-4xl bg-[#111827] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative flex flex-col max-h-[92vh] overflow-y-auto">
+      
+      <!-- Cabeçalho do Modal de Vendas -->
+      <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="brand-logo-wrapper w-11 h-11 shrink-0 flex">
+            <img src="logogordo.jpg" alt="Logo" class="brand-logo-circle">
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-black text-white">Contabilidade de Vendas</h3>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[10px] border border-emerald-500/30">
+                BEBIDAS & CIA
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">Acompanhamento diário e fechamento mensal separado por categoria</p>
+          </div>
+        </div>
+
+        <button onclick="fecharModalRelatorioVendas()" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-gray-800 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Barra de Filtro de Período (Hoje vs Mês) -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 my-4 bg-gray-900/80 p-3 rounded-2xl border border-gray-800">
+        <!-- Alternador Diário / Mensal -->
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button 
+            id="btnFiltroVendaHoje" 
+            onclick="definirPeriodoVendas('hoje')" 
+            class="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-500 text-black shadow-md shadow-emerald-500/20"
+          >
+            <i class="fa-solid fa-calendar-day mr-1.5"></i>Vendas de Hoje (Diário)
+          </button>
+          <button 
+            id="btnFiltroVendaMes" 
+            onclick="definirPeriodoVendas('mes')" 
+            class="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-semibold transition bg-gray-800 text-slate-300 hover:text-white hover:bg-gray-700"
+          >
+            <i class="fa-solid fa-calendar-days mr-1.5"></i>Total do Mês
+          </button>
+        </div>
+
+        <!-- Seletor de Mês específico quando estiver no modo mensal -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <span class="text-xs text-slate-400 font-medium">Referência:</span>
+          <input 
+            type="month" 
+            id="inputMesFiltro" 
+            onchange="aoMudarMesFiltro()" 
+            class="bg-gray-950 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+          >
+          <button 
+            onclick="abrirModalRegistrarVendaAvulsa()" 
+            title="Registrar uma venda rápida de balcão" 
+            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-cash-register"></i>
+            <span>+ Venda Balcão</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards de Resumo Geral do Período -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-brazilian-real-sign"></i>
+          </div>
+          <div>
+            <p id="labelPeriodoVenda" class="text-xs text-slate-400">Faturamento Hoje</p>
+            <p id="totalFaturamentoPeriodo" class="text-xl font-black text-emerald-400">R$ 0,00</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-wine-glass-empty"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400">Total de Unidades Vendidas</p>
+            <p id="totalQtdPeriodo" class="text-xl font-black text-white">0 itens</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-xs text-slate-400">Categoria Mais Vendida</p>
+            <p id="topCategoriaPeriodo" class="text-sm font-black text-amber-300 truncate">Nenhuma</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela Detalhada por Categorias -->
+      <div class="mb-5">
+        <h4 class="text-xs font-black uppercase tracking-wider text-slate-300 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-layer-group text-amber-400"></i>
+          <span>Desempenho por Categoria no Período</span>
+        </h4>
+        <div class="overflow-x-auto rounded-2xl border border-gray-800 bg-gray-900/60">
+          <table class="w-full text-left text-xs text-slate-300 border-collapse">
+            <thead>
+              <tr class="border-b border-gray-800 text-[11px] text-slate-400 uppercase tracking-wider bg-gray-900">
+                <th class="py-2.5 px-3">Categoria</th>
+                <th class="py-2.5 px-3">Unidades</th>
+                <th class="py-2.5 px-3">Total Vendido</th>
+                <th class="py-2.5 px-3">Participação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyVendasCategorias" class="divide-y divide-gray-800">
+              <!-- Inserido dinamicamente via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Histórico Recente de Pedidos / Vendas do Período -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-emerald-400"></i>
+            <span>Histórico de Pedidos Registrados</span>
+          </h4>
+          <span id="badgeContadorVendas" class="text-[11px] text-slate-400">0 vendas</span>
+        </div>
+
+        <div id="listaHistoricoVendas" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- Inserido dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- Rodapé do Modal -->
+      <div class="mt-5 pt-3 border-t border-gray-800 flex items-center justify-between">
+        <button 
+          onclick="zerarHistoricoVendas()" 
+          class="text-[11px] text-red-400/80 hover:text-red-300 flex items-center gap-1.5 transition"
+        >
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Limpar histórico local</span>
+        </button>
+
+        <button 
+          onclick="fecharModalRelatorioVendas()" 
+          class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-slate-200 text-xs font-bold transition"
+        >
+          Fechar Relatório
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ================= MODAL CADERNETA / FIADOS (COMPROU PARA PAGAR DEPOIS) ================= -->
   <div id="modalFiados" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="w-full max-w-4xl bg-[#111827] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative flex flex-col max-h-[92vh] overflow-y-auto">
@@ -1716,6 +1873,81 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       fecharModalBuscaImagens();
       showToast(`Foto de "${titulo}" selecionada!`, 'success');
     }
+
+    /* -------------------------------------------------------------
+       ESTADO GLOBAL DA APLICAÇÃO
+       ------------------------------------------------------------- */
+    const ESTOQUE_LOCAL_PADRAO = [
+      {
+        id: "prod-1",
+        nome: "Cerveja Heineken Long Neck",
+        categoria: "cervejas",
+        volume: "330ml",
+        preco: 8.50,
+        estoque_qtd: 48,
+        imagem: "https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-2",
+        nome: "Cerveja Corona Extra",
+        categoria: "cervejas",
+        volume: "330ml",
+        preco: 9.00,
+        estoque_qtd: 32,
+        imagem: "https://images.unsplash.com/photo-1538488881522-4321453a9943?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-3",
+        nome: "Whisky Johnnie Walker Black Label",
+        categoria: "whisky",
+        volume: "1000ml",
+        preco: 169.90,
+        estoque_qtd: 12,
+        imagem: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-4",
+        nome: "Cachaça Tradicional / Pitú",
+        categoria: "destilados",
+        volume: "965ml",
+        preco: 16.00,
+        estoque_qtd: 30,
+        imagem: "https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-5",
+        nome: "Vinho Tinto Cabernet Sauvignon",
+        categoria: "vinhos",
+        volume: "750ml",
+        preco: 45.00,
+        estoque_qtd: 20,
+        imagem: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-6",
+        nome: "Energético Red Bull Energy Drink",
+        categoria: "sem-alcool",
+        volume: "250ml",
+        preco: 11.50,
+        estoque_qtd: 60,
+        imagem: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      },
+      {
+        id: "prod-7",
+        nome: "Gelo em Cubos Filtrado",
+        categoria: "outros",
+        volume: "Pacote 5kg",
+        preco: 12.00,
+        estoque_qtd: 40,
+        imagem: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80",
+        disponivel: true
+      }
     ];
 
     const DIAS_SEMANA_NOMES = [
