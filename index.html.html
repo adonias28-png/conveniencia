@@ -322,13 +322,13 @@
         <!-- Indicador de Status Supabase / Sincronização -->
         <button 
           id="btnSyncStatus" 
-          onclick="sincronizarManual()" 
-          title="Sincronizar estoque em tempo real" 
-          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-800/80 border border-gray-700/80 text-[11px] text-slate-300 hover:text-amber-400 transition"
+          onclick="forcarEnvioEstoqueParaNuvem()" 
+          title="Clique para publicar todo o seu estoque atual na nuvem para todos os clientes" 
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[11px] text-emerald-300 hover:bg-emerald-500/20 transition font-bold"
         >
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="syncText" class="font-medium">Sincronizado</span>
-          <i id="syncIcon" class="fa-solid fa-arrows-rotate text-[11px] text-slate-400"></i>
+          <span id="syncText" class="font-bold">Publicar na Nuvem</span>
+          <i id="syncIcon" class="fa-solid fa-cloud-arrow-up text-xs text-emerald-400"></i>
         </button>
 
         <!-- Botão Abrir Modal Supabase -->
@@ -1523,19 +1523,21 @@
         <!-- Script SQL para Criar Tabelas no Supabase -->
         <div class="pt-2">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-slate-400 font-semibold">Script SQL para criar tabelas (produtos, vendas, config_loja e fiados):</span>
-            <button onclick="copiarSqlSupabase()" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold">
+            <span class="text-amber-400 font-bold">Script SQL Definitivo (Copie e rode no SQL Editor do Supabase):</span>
+            <button onclick="copiarSqlSupabase()" class="px-2.5 py-1 rounded-lg bg-amber-500 text-black hover:bg-amber-400 text-[11px] font-extrabold transition">
               <i class="fa-regular fa-copy mr-1"></i>Copiar SQL
             </button>
           </div>
-          <pre id="codigoSqlSupabase" class="bg-gray-950 p-3 rounded-xl border border-gray-800 text-[10px] text-slate-300 font-mono overflow-x-auto select-all">CREATE TABLE IF NOT EXISTS public.produtos (
+          <pre id="codigoSqlSupabase" class="bg-gray-950 p-3 rounded-xl border border-gray-800 text-[10px] text-slate-300 font-mono overflow-x-auto select-all">-- PASSO 1: RECRIAR TABELAS COM A ESTRUTURA EXATA
+DROP TABLE IF EXISTS public.produtos CASCADE;
+CREATE TABLE public.produtos (
   id text PRIMARY KEY,
   nome text NOT NULL,
   categoria text NOT NULL,
-  volume text,
+  volume text DEFAULT '',
   preco numeric NOT NULL,
   estoque_qtd integer DEFAULT 20,
-  imagem text,
+  imagem text DEFAULT '',
   disponivel boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now()
 );
@@ -1567,25 +1569,34 @@ CREATE TABLE IF NOT EXISTS public.fiados (
   created_at timestamp with time zone DEFAULT now()
 );
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.produtos;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.config_loja;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.fiados;
+-- PASSO 2: DESATIVAR BLOQUEIO RLS PARA GARANTIR QUE TODOS OS CLIENTES VEJAM E ATUALIZEM
+ALTER TABLE public.produtos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vendas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.config_loja DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fiados DISABLE ROW LEVEL SECURITY;
 
-ALTER TABLE public.produtos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Publico Produtos Leitura" ON public.produtos FOR SELECT USING (true);
-CREATE POLICY "Publico Produtos Escrita" ON public.produtos FOR ALL USING (true);
+-- PASSO 3: GARANTIR PERMISSÕES TOTAIS PARA A CHAVE PÚBLICA (ANON)
+GRANT ALL ON TABLE public.produtos TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.vendas TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.config_loja TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;
 
-ALTER TABLE public.vendas ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Publico Vendas Leitura" ON public.vendas FOR SELECT USING (true);
-CREATE POLICY "Publico Vendas Escrita" ON public.vendas FOR ALL USING (true);
-
-ALTER TABLE public.config_loja ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Publico Config Leitura" ON public.config_loja FOR SELECT USING (true);
-CREATE POLICY "Publico Config Escrita" ON public.config_loja FOR ALL USING (true);
-
-ALTER TABLE public.fiados ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Publico Fiados Leitura" ON public.fiados FOR SELECT USING (true);
-CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</pre>
+-- PASSO 4: ATIVAR ATUALIZAÇÃO EM TEMPO REAL
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.produtos;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.config_loja;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.fiados;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+END $$;</pre>
         </div>
       </div>
 
@@ -3223,21 +3234,24 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       // Salva no Supabase garantindo persistência (tenta com created_at e fallback sem created_at caso a coluna não exista)
       if (supabaseClient) {
         try {
-          let { error } = await supabaseClient.from('produtos').upsert([dadosProduto]);
+          let { error } = await supabaseClient.from('produtos').upsert([dadosProduto], { onConflict: 'id' });
           if (error) {
             const { created_at, ...dadosSemData } = dadosProduto;
-            const retry = await supabaseClient.from('produtos').upsert([dadosSemData]);
+            const retry = await supabaseClient.from('produtos').upsert([dadosSemData], { onConflict: 'id' });
             error = retry.error;
           }
           if (error) {
-            console.warn('Erro ao salvar no Supabase:', error);
-            showToast('Salvo localmente (alerta nuvem: ' + error.message + ')', 'info');
+            console.error('Erro detalhado do Supabase:', error);
+            showToast('ERRO NA NUVEM: ' + error.message + ' (Rode o novo SQL no Supabase!)', 'error');
           } else {
-            console.log('Produto persistido no Supabase:', idFinal);
+            showToast(`"${nome}" salvo e publicado para todos os clientes!`, 'success');
           }
         } catch (err) {
-          console.warn('Falha de conexão Supabase:', err);
+          console.error('Falha de conexão Supabase:', err);
+          showToast('Falha de rede ao conectar no Supabase.', 'error');
         }
+      } else {
+        showToast(`"${nome}" salvo apenas localmente (Sem conexão Supabase).`, 'info');
       }
 
       operacaoEmAndamento = false;
@@ -3246,8 +3260,6 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         btnSubmit.disabled = false;
         btnSubmit.classList.remove('opacity-50');
       }
-
-      showToast(`"${nome}" salvo com sucesso!`, 'success');
     }
 
     /* -------------------------------------------------------------
@@ -3963,10 +3975,31 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         carregarProdutosSupabase();
         carregarConfiguracoesSupabase();
         carregarFiadosSupabase();
+        iniciarEscutaRealtimeSupabase();
         iniciarAutoSync();
       } catch (e) {
         console.warn('Erro ao conectar Supabase:', e);
         atualizarStatusSync('err', 'Falha Conexão');
+      }
+    }
+
+    function iniciarEscutaRealtimeSupabase() {
+      if (!supabaseClient) return;
+      try {
+        supabaseClient
+          .channel('canal-bebidas-cia')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, () => {
+            if (!operacaoEmAndamento) carregarProdutosSupabase();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'config_loja' }, () => {
+            carregarConfiguracoesSupabase();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'fiados' }, () => {
+            carregarFiadosSupabase();
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn('Realtime subscription warning:', e);
       }
     }
 
@@ -3978,34 +4011,45 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
           .select('*');
         
         if (error) {
-          console.warn('Erro no fetch Supabase produtos:', error);
+          console.error('Erro no fetch Supabase produtos:', error);
+          atualizarStatusSync('err', 'Erro SQL/Tabela');
           return;
         }
 
         if (operacaoEmAndamento) return;
 
-        // Se o banco na nuvem estiver completamente vazio e o usuário AINDA NÃO tiver configurado o catálogo
-        if ((!data || data.length === 0) && !bancoInicializadoFlag) {
-          console.log('Primeiro acesso: Enviando catálogo inicial ao Supabase...');
-          await supabaseClient.from('produtos').upsert(ESTOQUE_LOCAL_PADRAO);
-          produtos = [...ESTOQUE_LOCAL_PADRAO];
-          localStorage.setItem('bebidascia_seed_done', 'true');
-          bancoInicializadoFlag = true;
+        // Se a tabela na nuvem estiver vazia e temos produtos locais, sobe tudo para a nuvem automaticamente!
+        if (!data || data.length === 0) {
+          if (!bancoInicializadoFlag && produtos.length > 0) {
+            const listaInicial = produtos.map(p => ({
+              id: String(p.id),
+              nome: p.nome,
+              categoria: p.categoria,
+              volume: p.volume || '',
+              preco: Number(p.preco),
+              estoque_qtd: Number(p.estoque_qtd || 20),
+              imagem: p.imagem || '',
+              disponivel: Boolean(p.disponivel)
+            }));
+            const { error: seedError } = await supabaseClient.from('produtos').upsert(listaInicial, { onConflict: 'id' });
+            if (!seedError) {
+              localStorage.setItem('bebidascia_seed_done', 'true');
+              bancoInicializadoFlag = true;
+            }
+          }
         } else if (data && data.length > 0) {
-          // Filtra itens que foram excluídos recentemente pelo dono para não reaparecerem
-          const dadosValidosNuvem = data.filter(item => !idsExcluidosRecentemente.has(String(item.id)));
-          const idsDaNuvem = new Set(dadosValidosNuvem.map(item => String(item.id)));
+          // A NUVEM É A FONTE OFICIAL DA VERDADE PARA TODOS OS APARELHOS (DONO E CLIENTES)
+          const dadosValidosNuvem = data.filter(item => !idsExcluidosRecentemente.has(String(item.id))).map(item => ({
+            ...item,
+            preco: Number(item.preco),
+            estoque_qtd: Number(item.estoque_qtd ?? 20),
+            disponivel: Boolean(item.disponivel)
+          }));
           
-          // Preserva itens locais criados pelo dono que ainda não constam na resposta da nuvem
-          const itensLocaisNovos = produtos.filter(p => 
-            !idsDaNuvem.has(String(p.id)) && 
-            !idsExcluidosRecentemente.has(String(p.id)) &&
-            String(p.id).startsWith('prod-')
-          );
-          
-          produtos = [...itensLocaisNovos, ...dadosValidosNuvem];
+          produtos = dadosValidosNuvem;
           localStorage.setItem('bebidascia_seed_done', 'true');
           bancoInicializadoFlag = true;
+          atualizarStatusSync('on', 'Sincronizado');
         }
 
         salvarProdutosLocalmente();
@@ -4014,6 +4058,61 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       } catch (err) {
         console.warn('Erro no fetch Supabase produtos:', err);
       }
+    }
+
+    async function forcarEnvioEstoqueParaNuvem() {
+      if (!supabaseClient) {
+        showToast('Supabase não conectado!', 'error');
+        return;
+      }
+
+      const icon = document.getElementById('syncIcon');
+      if (icon) icon.classList.add('fa-spin');
+      atualizarStatusSync('sync', 'Enviando...');
+      operacaoEmAndamento = true;
+
+      try {
+        const loteParaSubir = produtos.map(p => ({
+          id: String(p.id),
+          nome: p.nome,
+          categoria: p.categoria,
+          volume: p.volume || '',
+          preco: Number(p.preco),
+          estoque_qtd: Number(p.estoque_qtd ?? 20),
+          imagem: p.imagem || '',
+          disponivel: Boolean(p.disponivel)
+        }));
+
+        if (loteParaSubir.length > 0) {
+          const { error } = await supabaseClient.from('produtos').upsert(loteParaSubir, { onConflict: 'id' });
+          if (error) {
+            showToast('Erro no Supabase: ' + error.message + '. Rode o novo SQL!', 'error');
+            atualizarStatusSync('err', 'Erro Permissão');
+            operacaoEmAndamento = false;
+            if (icon) icon.classList.remove('fa-spin');
+            return;
+          }
+        }
+
+        await supabaseClient.from('config_loja').upsert({
+          id: 'loja_principal',
+          dados: configLoja,
+          updated_at: new Date().toISOString()
+        });
+
+        operacaoEmAndamento = false;
+        await carregarProdutosSupabase();
+        await carregarConfiguracoesSupabase();
+        await carregarFiadosSupabase();
+        atualizarStatusSync('on', 'Publicado!');
+        showToast('Todo o estoque foi publicado na nuvem para todos os clientes!', 'success');
+      } catch (e) {
+        operacaoEmAndamento = false;
+        atualizarStatusSync('err', 'Falha Rede');
+        showToast('Erro ao publicar estoque.', 'error');
+      }
+
+      if (icon) icon.classList.remove('fa-spin');
     }
 
     async function carregarConfiguracoesSupabase() {
