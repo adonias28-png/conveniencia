@@ -47,7 +47,6 @@
       color: #E2E8F0;
     }
     
-    /* Scrollbar personalizada */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -90,7 +89,7 @@
       border-radius: 50%;
       overflow: hidden;
       clip-path: circle(50% at 50% 50%);
-      background-color: #1E293B;
+      background-color: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -105,7 +104,7 @@
       
       <!-- Marca / Logo -->
       <div class="flex items-center gap-3 cursor-pointer select-none" onclick="voltarParaCatalogo()">
-        <div class="brand-logo-wrapper relative w-11 h-11 sm:w-12 sm:h-12 shadow-md shadow-amber-500/20 shrink-0 border border-amber-500/30">
+        <div class="brand-logo-wrapper relative w-11 h-11 sm:w-12 sm:h-12 shadow-md shadow-amber-500/20 shrink-0">
           <img 
             src="logogordo.jpg" 
             alt="Logo Bebidas & Cia" 
@@ -163,7 +162,7 @@
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-gray-950 via-[#111927] to-amber-950/40 border border-amber-500/20 p-4 sm:p-6 mb-5 shadow-xl">
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-4">
-          <div class="brand-logo-wrapper w-14 h-14 sm:w-16 sm:h-16 shrink-0 hidden sm:flex shadow-lg shadow-amber-500/30 border border-amber-500/40">
+          <div class="brand-logo-wrapper w-14 h-14 sm:w-16 sm:h-16 shrink-0 hidden sm:flex shadow-lg shadow-amber-500/30">
             <img 
               src="logogordo.jpg" 
               alt="Logo BEBIDAS & CIA" 
@@ -174,7 +173,7 @@
           <div>
             <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold mb-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span id="bannerStatusExpediente">BEBIDAS & CIA • UNIDADES E FARDOS GELADOS</span>
+              <span id="bannerStatusExpediente">BEBIDAS & CIA • CERVEJA ESTALANDO NO GELO</span>
             </div>
             <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">O Melhor Ponto de Encontro e Conveniência</h2>
             <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Compre por unidade ou fardo fechado com desconto. Peça para entrega ou retire no balcão!</p>
@@ -301,8 +300,8 @@
             </span>
             <span class="text-xs text-slate-400">• Gerenciador</span>
           </div>
-          <h2 class="text-xl sm:text-2xl font-black text-white mt-1">Controle de Estoque (Unidades & Fardos)</h2>
-          <p class="text-xs text-slate-400">Cadastre o estoque em unidades e configure preços especiais para fardos/pacotes que abatem sozinhos.</p>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-1">Controle de Estoque (Unidade & Fardo)</h2>
+          <p class="text-xs text-slate-400">Cadastre o preço da unidade e do fardo opcional. O estoque é abatido automaticamente nas vendas!</p>
         </div>
       </div>
 
@@ -469,7 +468,7 @@
               type="text" 
               id="prodNome" 
               required 
-              placeholder="Ex: Cerveja Brahma Chopp Lata" 
+              placeholder="Ex: Cerveja Heineken Long Neck" 
               class="w-full bg-gray-900 border border-gray-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none"
             >
           </div>
@@ -497,7 +496,7 @@
               <input 
                 type="text" 
                 id="prodVolume" 
-                placeholder="Ex: Lata 350ml, 600ml, 1L" 
+                placeholder="Ex: 330ml, 600ml, 1L" 
                 class="w-full bg-gray-900 border border-gray-800 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none"
               >
             </div>
@@ -522,21 +521,12 @@
             </div>
 
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="block text-[11px] font-semibold text-slate-300">Estoque Total (Unid.)</label>
-                <button 
-                  type="button" 
-                  onclick="toggleCalcEstoque()" 
-                  class="text-[10px] text-amber-400 hover:underline font-bold"
-                  title="Calcular estoque por fardos comprados"
-                >
-                  <i class="fa-solid fa-calculator mr-0.5"></i>Calc. Fardos
-                </button>
-              </div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Estoque Total (Unid.) *</label>
               <input 
                 type="number" 
                 id="prodEstoqueQtd" 
                 min="0" 
+                required
                 value="120" 
                 placeholder="Ex: 120" 
                 class="w-full bg-gray-900 border border-gray-800 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs placeholder-slate-500 focus:outline-none font-bold text-emerald-400"
@@ -544,78 +534,58 @@
             </div>
           </div>
 
-          <!-- Calculadora Auxiliar de Entrada de Fardos -> Unidades -->
-          <div id="boxCalcEstoque" class="hidden p-3 rounded-2xl bg-gray-900/90 border border-amber-500/30 space-y-2">
+          <!-- OPÇÃO DE FARDO / PACOTE DIRETA (Simples e Eficaz) -->
+          <div class="p-3.5 rounded-2xl bg-gray-900/90 border border-amber-500/30 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-boxes-packing"></i> Converter Fardos Comprados em Unidades
-              </span>
-              <button type="button" onclick="toggleCalcEstoque()" class="text-slate-500 hover:text-white text-xs">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
+              <label class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-box-open"></i>
+                <span>Venda em Fardo / Pacote (Opcional)</span>
+              </label>
+              <span class="text-[9px] text-slate-400">Abate unidades automaticamente</span>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] text-slate-400 mb-0.5">Qtd de Pacotes/Fardos</label>
-                <input type="number" id="calcQtdPacotes" min="1" value="10" oninput="atualizarPreviewCalcEstoque()" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div class="sm:col-span-5">
+                <label class="block text-[10px] text-slate-400 mb-0.5">Qtd no Fardo</label>
+                <select id="prodFardoQtd" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold">
+                  <option value="0">Apenas Unidade</option>
+                  <option value="6">Fardo c/ 6 un</option>
+                  <option value="8">Fardo c/ 8 un</option>
+                  <option value="12" selected>Fardo c/ 12 un</option>
+                  <option value="15">Caixa c/ 15 un</option>
+                  <option value="24">Fardo c/ 24 un</option>
+                </select>
               </div>
-              <div>
-                <label class="block text-[10px] text-slate-400 mb-0.5">Unidades por Pacote</label>
-                <input type="number" id="calcUnPorPacote" min="1" value="12" oninput="atualizarPreviewCalcEstoque()" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
+
+              <div class="sm:col-span-7">
+                <label class="block text-[10px] text-slate-400 mb-0.5">Preço do Fardo (R$)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-semibold">R$</span>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    min="0" 
+                    id="prodFardoPreco" 
+                    placeholder="Ex: 45,00" 
+                    class="w-full bg-gray-950 border border-gray-800 focus:border-amber-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none font-bold text-amber-400"
+                  >
+                </div>
               </div>
             </div>
-            <div class="flex items-center justify-between pt-1">
-              <span class="text-[11px] text-slate-400">Total: <strong id="calcResultadoUn" class="text-emerald-400">120 unidades</strong></span>
-              <div class="flex gap-1.5">
-                <button type="button" onclick="aplicarCalcEstoque(false)" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-slate-200 text-[10px] font-bold">
-                  Substituir
-                </button>
-                <button type="button" onclick="aplicarCalcEstoque(true)" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold">
-                  + Somar ao Atual
-                </button>
-              </div>
-            </div>
+            <p class="text-[10px] text-slate-400 leading-tight">Ex: Se a lata é R$ 10,00 e o fardo com 6 é R$ 45,00, configure acima. Ao vender 1 fardo, o sistema baixa 6 unidades do estoque.</p>
           </div>
 
-          <!-- SEÇÃO DE PACOTES / FARDOS COM PREÇO DIFERENCIADO -->
-          <div class="p-3 rounded-2xl bg-gray-900/70 border border-gray-800 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
-                  <i class="fa-solid fa-box-open"></i>
-                  <span>Venda em Pacotes / Fardos (Opcional)</span>
-                </label>
-                <p class="text-[10px] text-slate-400">Configure o preço do pacote (6, 8, 12 un). Ao vender, abate as unidades automaticamente!</p>
-              </div>
-            </div>
-
-            <!-- Botões rápidos de pacotes comuns -->
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-[10px] text-slate-500 mr-1">Adicionar rápido:</span>
-              <button type="button" onclick="adicionarLinhaPacote('Pack c/ 6 un', 6)" class="px-2 py-1 rounded-lg bg-gray-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-gray-700 text-[10px] font-semibold transition">+6 un</button>
-              <button type="button" onclick="adicionarLinhaPacote('Pack c/ 8 un', 8)" class="px-2 py-1 rounded-lg bg-gray-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-gray-700 text-[10px] font-semibold transition">+8 un</button>
-              <button type="button" onclick="adicionarLinhaPacote('Pacote c/ 12 un', 12)" class="px-2 py-1 rounded-lg bg-gray-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-gray-700 text-[10px] font-semibold transition">+12 un</button>
-              <button type="button" onclick="adicionarLinhaPacote('Caixa c/ 15 un', 15)" class="px-2 py-1 rounded-lg bg-gray-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-gray-700 text-[10px] font-semibold transition">+15 un</button>
-              <button type="button" onclick="adicionarLinhaPacote('Fardo c/ 24 un', 24)" class="px-2 py-1 rounded-lg bg-gray-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-gray-700 text-[10px] font-semibold transition">+24 un</button>
-            </div>
-
-            <!-- Lista de pacotes adicionados para este produto -->
-            <div id="listaPacotesForm" class="space-y-2">
-              <!-- Linhas geradas via JS -->
-            </div>
-          </div>
-
-          <!-- SEÇÃO DE FOTO DO PRODUTO -->
+          <!-- SEÇÃO DE FOTO DO PRODUTO (Câmera, Galeria ou Link) -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="text-[11px] font-semibold text-slate-300">Foto da Bebida</label>
-              <span class="text-[10px] text-slate-500">Tire foto, suba ou pesquise</span>
+              <span class="text-[10px] text-slate-500">Tire foto, suba da galeria ou cole link</span>
             </div>
 
             <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="processarFotoInput(this)">
             <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="processarFotoInput(this)">
 
-            <div class="grid grid-cols-3 gap-2 mb-2">
+            <div class="grid grid-cols-2 gap-2 mb-2">
               <button 
                 type="button" 
                 onclick="document.getElementById('cameraInput').click()" 
@@ -632,15 +602,6 @@
               >
                 <i class="fa-regular fa-image text-amber-400"></i>
                 <span>Galeria</span>
-              </button>
-
-              <button 
-                type="button" 
-                onclick="abrirModalBuscaImagens()" 
-                class="py-2.5 px-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:border-amber-500/60 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95"
-              >
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Buscar Web</span>
               </button>
             </div>
 
@@ -702,7 +663,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 mb-3 border-b border-gray-800 gap-2">
           <div>
             <h3 class="text-sm font-bold text-white">Bebidas Cadastradas no Estoque</h3>
-            <p class="text-[11px] text-slate-400">O estoque é contado em unidades e abate automaticamente nas vendas de pacotes.</p>
+            <p class="text-[11px] text-slate-400">Controle de unidades e fardos em tempo real.</p>
           </div>
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
@@ -720,9 +681,9 @@
           <table class="w-full text-left text-xs text-slate-300 border-collapse">
             <thead>
               <tr class="border-b border-gray-800 text-[11px] text-slate-400 uppercase tracking-wider">
-                <th class="py-2.5 px-3">Bebida & Pacotes</th>
+                <th class="py-2.5 px-3">Bebida & Valores</th>
                 <th class="py-2.5 px-3">Categoria</th>
-                <th class="py-2.5 px-3">Preço Unid.</th>
+                <th class="py-2.5 px-3">Estoque</th>
                 <th class="py-2.5 px-3">Status</th>
                 <th class="py-2.5 px-3 text-right">Ações</th>
               </tr>
@@ -742,14 +703,14 @@
     </div>
   </section>
 
-  <!-- ================= MODAL DE CONTABILIDADE E VENDAS (DIÁRIO / MENSAL) ================= -->
+  <!-- ================= MODAL DE CONTABILIDADE E VENDAS ================= -->
   <div id="modalRelatorioVendas" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="w-full max-w-4xl bg-[#111827] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative flex flex-col max-h-[92vh] overflow-y-auto">
       
       <div class="flex items-center justify-between pb-4 border-b border-gray-800">
         <div class="flex items-center gap-3">
           <div class="brand-logo-wrapper w-11 h-11 shrink-0 flex border border-amber-500/30">
-            <img src="logogordo.jpg" alt="Logo" class="brand-logo-circle" onerror="this.src='https://placehold.co/80x80/111827/f59e0b?text=B%26C'">
+            <img src="logogordo.jpg" alt="Logo" class="brand-logo-circle">
           </div>
           <div>
             <div class="flex items-center gap-2">
@@ -820,7 +781,7 @@
             <i class="fa-solid fa-wine-glass-empty"></i>
           </div>
           <div>
-            <p class="text-xs text-slate-400">Total de Itens Vendidos</p>
+            <p class="text-xs text-slate-400">Total de Unidades Vendidas</p>
             <p id="totalQtdPeriodo" class="text-xl font-black text-white">0 itens</p>
           </div>
         </div>
@@ -846,7 +807,7 @@
             <thead>
               <tr class="border-b border-gray-800 text-[11px] text-slate-400 uppercase tracking-wider bg-gray-900">
                 <th class="py-2.5 px-3">Categoria</th>
-                <th class="py-2.5 px-3">Qtd Vendida</th>
+                <th class="py-2.5 px-3">Unidades</th>
                 <th class="py-2.5 px-3">Total Vendido</th>
                 <th class="py-2.5 px-3">Participação</th>
               </tr>
@@ -1631,78 +1592,6 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     </div>
   </div>
 
-  <!-- ================= MODAL DE BUSCA DE FOTOS NA WEB ================= -->
-  <div id="webImageSearchModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-    <div class="w-full max-w-2xl bg-[#111827] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
-      
-      <div class="flex items-center justify-between pb-3 border-b border-gray-800">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-base">
-            <i class="fa-solid fa-globe"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Buscar Foto na Web</h3>
-            <p class="text-[11px] text-slate-400">Encontre imagens em alta resolução para BEBIDAS & CIA</p>
-          </div>
-        </div>
-        <button onclick="fecharModalBuscaImagens()" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-gray-800 transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <div class="py-3">
-        <div class="flex items-center gap-2">
-          <div class="relative flex-1">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input 
-              type="text" 
-              id="webSearchQuery" 
-              placeholder="Digite a bebida (ex: Heineken, Brahma, Skol, Red Bull, Pitú...)" 
-              class="w-full bg-gray-900 border border-gray-800 focus:border-amber-500 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none"
-              onkeydown="if(event.key==='Enter') pesquisarFotosWeb()"
-            >
-          </div>
-          <button 
-            type="button" 
-            onclick="pesquisarFotosWeb()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs flex items-center gap-1.5 transition active:scale-95"
-          >
-            <span>Buscar</span>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 no-scrollbar text-[11px]">
-          <span class="text-slate-500 text-[10px] whitespace-nowrap">Sugestões:</span>
-          <button type="button" onclick="pesquisarTermoPredefinido('Heineken')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Heineken</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Brahma')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Brahma</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Skol')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Skol</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Whisky')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Whisky</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Jack Daniels')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Jack Daniel's</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Vodka')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Vodka</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Pitú')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Cachaça</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Gin')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gin</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Vinho')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Vinho</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Red Bull')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Red Bull</button>
-          <button type="button" onclick="pesquisarTermoPredefinido('Gelo')" class="px-2 py-0.5 rounded-lg bg-gray-800 text-slate-300 hover:text-amber-400 whitespace-nowrap">Gelo</button>
-        </div>
-      </div>
-
-      <div id="webSearchResults" class="flex-1 overflow-y-auto min-h-[240px] max-h-[360px] p-1 border border-gray-800/80 rounded-2xl bg-gray-950/50">
-        <div class="h-full flex flex-col items-center justify-center text-center p-8 text-slate-500">
-          <i class="fa-solid fa-cloud-arrow-down text-3xl text-slate-600 mb-2"></i>
-          <p class="text-xs font-medium text-slate-400">Digite a bebida desejada para buscar fotos prontas.</p>
-        </div>
-      </div>
-
-      <div class="pt-3 border-t border-gray-800 flex justify-end">
-        <button type="button" onclick="fecharModalBuscaImagens()" class="px-4 py-2 rounded-xl bg-gray-800 text-slate-300 hover:bg-gray-750 text-xs font-semibold transition">
-          Fechar
-        </button>
-      </div>
-
-    </div>
-  </div>
-
   <!-- ================= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO ================= -->
   <div id="modalConfirmExclusao" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="w-full max-w-sm bg-[#111827] border border-gray-800 rounded-3xl p-5 shadow-2xl relative text-center">
@@ -1809,7 +1698,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
   <script>
     /* -------------------------------------------------------------
-       MODAL DE CONFIRMAÇÃO GENÉRICO (SEM WINDOW.CONFIRM)
+       MODAL DE CONFIRMAÇÃO GENÉRICO
        ------------------------------------------------------------- */
     let acaoConfirmadaCallback = null;
 
@@ -1832,158 +1721,17 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     }
 
     /* -------------------------------------------------------------
-       GALERIA DE FOTOS INTERNA + BUSCA WEB
-       ------------------------------------------------------------- */
-    const BANCO_FOTOS_BEBIDAS = [
-      { tags: ['brahma', 'cerveja', 'duplo malte', 'puro malte'], titulo: 'Brahma Duplo Malte (Lata / Garrafa)', url: 'https://images.unsplash.com/photo-1608270190989-c56df3d2e293?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['brahma', 'cerveja', 'chopp', 'lata', 'litrao'], titulo: 'Brahma Chopp Tradicional Lata', url: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['brahma', 'cerveja', 'gelada', 'copo', 'balde'], titulo: 'Brahma Gelada no Balde com Gelo', url: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['skol', 'cerveja', 'lata', 'pilsen'], titulo: 'Cerveja Skol Pilsen Lata', url: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['heineken', 'cerveja', 'long neck', 'garrafa'], titulo: 'Heineken Long Neck 330ml', url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['corona', 'cerveja', 'extra', 'long neck', 'limao'], titulo: 'Corona Extra Long Neck', url: 'https://images.unsplash.com/photo-1538488881522-4321453a9943?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['budweiser', 'cerveja', 'bud', 'long neck', 'lata'], titulo: 'Budweiser American Lager', url: 'https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['stella', 'stella artois', 'cerveja', 'puro malte'], titulo: 'Stella Artois Long Neck', url: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['johnnie walker', 'red label', 'black label', 'whisky'], titulo: 'Johnnie Walker Scotch Whisky', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['jack daniels', 'whiskey', 'bourbon'], titulo: 'Jack Daniel\'s Tennessee Whiskey', url: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['pitu', 'pitú', 'cachaca', 'cachaça', '51', 'ypioca'], titulo: 'Cachaça Tradicional / Aguardente', url: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['vodka', 'smirnoff', 'absolut', 'gin', 'tanqueray'], titulo: 'Vodka / Gin Destilado Premium', url: 'https://images.unsplash.com/photo-1550985543-f47f38aeee65?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['vinho', 'casillero', 'cabernet', 'tinto', 'pergola'], titulo: 'Vinho Tinto Selecionado', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['red bull', 'energetico', 'monster', 'lata'], titulo: 'Energético Red Bull / Monster', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['coca cola', 'coca-cola', 'refrigerante', 'guarana'], titulo: 'Refrigerante Gelado Lata / 2L', url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['gelo', 'cubo', 'pacote de gelo', '5kg'], titulo: 'Gelo em Cubos Filtrado Pacote 5kg', url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['carvao', 'carvão', 'churrasco'], titulo: 'Carvão Vegetal para Churrasco', url: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&auto=format&fit=crop&q=80' }
-    ];
-
-    function abrirModalBuscaImagens() {
-      const nomeDigitado = document.getElementById('prodNome').value.trim();
-      const input = document.getElementById('webSearchQuery');
-      if (input) input.value = nomeDigitado || '';
-      document.getElementById('webImageSearchModal').classList.remove('hidden');
-      pesquisarFotosWeb();
-    }
-
-    function fecharModalBuscaImagens() {
-      document.getElementById('webImageSearchModal').classList.add('hidden');
-    }
-
-    function pesquisarTermoPredefinido(termo) {
-      document.getElementById('webSearchQuery').value = termo;
-      pesquisarFotosWeb();
-    }
-
-    async function pesquisarFotosWeb() {
-      const queryOriginal = (document.getElementById('webSearchQuery')?.value || '').trim();
-      const query = queryOriginal.toLowerCase();
-      const container = document.getElementById('webSearchResults');
-      if (!container) return;
-
-      container.innerHTML = `
-        <div class="h-48 flex flex-col items-center justify-center text-slate-400">
-          <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-500 mb-2"></i>
-          <span class="text-xs">Buscando fotos de alta definição...</span>
-        </div>
-      `;
-
-      let fotosEncontradas = [];
-
-      if (query) {
-        const palavrasBusca = query.split(' ').filter(w => w.length > 1);
-        fotosEncontradas = BANCO_FOTOS_BEBIDAS.filter(item => {
-          const tituloMatch = item.titulo.toLowerCase().includes(query);
-          const tagsMatch = item.tags.some(tag => palavrasBusca.some(p => tag.includes(p) || p.includes(tag)));
-          return tituloMatch || tagsMatch;
-        });
-      }
-
-      if (query) {
-        try {
-          const termoClean = encodeURIComponent(queryOriginal);
-          const urlOFF = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${termoClean}&search_simple=1&action=process&json=1&page_size=12`;
-          const controllerOFF = new AbortController();
-          const timeoutOFF = setTimeout(() => controllerOFF.abort(), 3200);
-          const resOFF = await fetch(urlOFF, { signal: controllerOFF.signal });
-          clearTimeout(timeoutOFF);
-
-          if (resOFF.ok) {
-            const dataOFF = await resOFF.json();
-            if (dataOFF && Array.isArray(dataOFF.products)) {
-              dataOFF.products.forEach(p => {
-                const imgUrl = p.image_front_url || p.image_url || p.image_small_url;
-                if (imgUrl && !imgUrl.endsWith('.svg')) {
-                  fotosEncontradas.push({
-                    titulo: p.product_name || p.generic_name || queryOriginal,
-                    url: imgUrl
-                  });
-                }
-              });
-            }
-          }
-        } catch (e) {
-          console.warn('Busca externa ignorada:', e);
-        }
-      }
-
-      if (fotosEncontradas.length === 0) {
-        fotosEncontradas = BANCO_FOTOS_BEBIDAS;
-      }
-
-      const urlsVistas = new Set();
-      const fotosFinais = fotosEncontradas.filter(f => {
-        if (!f.url || urlsVistas.has(f.url)) return false;
-        urlsVistas.add(f.url);
-        return true;
-      });
-
-      container.innerHTML = `
-        <div class="p-1 mb-2 text-[11px] text-slate-400 flex items-center justify-between">
-          <span>Encontradas <strong>${fotosFinais.length}</strong> fotos para "<em>${queryOriginal || 'Sugestões'}</em>":</span>
-          <span class="text-[10px] text-amber-400">Clique para selecionar</span>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-1">
-          ${fotosFinais.map(f => {
-            const safeTitle = (f.titulo || 'Bebida').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            return `
-            <div 
-              onclick="selecionarFotoWeb('${f.url}', '${safeTitle}')" 
-              class="cursor-pointer group relative bg-gray-900 border border-gray-800 hover:border-amber-500 rounded-2xl overflow-hidden p-2 transition flex flex-col items-center hover:scale-[1.02] shadow-lg"
-            >
-              <div class="w-full aspect-square overflow-hidden rounded-xl bg-black/60 relative flex items-center justify-center p-1">
-                <img 
-                  src="${f.url}" 
-                  class="w-full h-full object-contain group-hover:scale-105 transition duration-300" 
-                  loading="lazy" 
-                  onerror="this.src='https://placehold.co/300x300/1e293b/f59e0b?text=BEBIDAS+%26+CIA'"
-                >
-              </div>
-              <p class="text-[10px] text-slate-300 font-bold truncate w-full text-center mt-2 px-1 leading-tight">${f.titulo}</p>
-              <span class="text-[9px] text-amber-400 font-bold mt-1 inline-flex items-center gap-1 opacity-90 group-hover:text-amber-300">
-                <i class="fa-solid fa-circle-check text-[8px]"></i>Usar esta foto
-              </span>
-            </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-
-    function selecionarFotoWeb(url, titulo) {
-      fotoBase64Atual = url;
-      document.getElementById('prodImagem').value = url;
-      definirPreviaImagem(url, titulo);
-      fecharModalBuscaImagens();
-      showToast(`Foto de "${titulo}" selecionada!`, 'success');
-    }
-
-    /* -------------------------------------------------------------
-       ESTADO GLOBAL E CODIFICAÇÃO DE PACOTES / FARDOS
+       ESTADO GLOBAL E CODIFICAÇÃO DE FARDO/UNIDADE
        ------------------------------------------------------------- */
     const ESTOQUE_LOCAL_PADRAO = [
       {
         id: "prod-1",
         nome: "Cerveja Heineken Long Neck",
         categoria: "cervejas",
-        volume: "330ml ||PACKS:[{\"nome\":\"Pack c/ 6 un\",\"qtd\":6,\"preco\":48},{\"nome\":\"Caixa c/ 12 un\",\"qtd\":12,\"preco\":92}]",
+        volume: "330ml",
         preco: 8.50,
+        fardo_qtd: 6,
+        fardo_preco: 48.00,
         estoque_qtd: 120,
         imagem: "https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -1992,8 +1740,10 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         id: "prod-2",
         nome: "Cerveja Brahma Chopp Lata",
         categoria: "cervejas",
-        volume: "350ml ||PACKS:[{\"nome\":\"Pack c/ 6 un\",\"qtd\":6,\"preco\":25.9},{\"nome\":\"Fardo c/ 12 un\",\"qtd\":12,\"preco\":49.9}]",
+        volume: "350ml",
         preco: 4.50,
+        fardo_qtd: 12,
+        fardo_preco: 49.90,
         estoque_qtd: 120,
         imagem: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2004,6 +1754,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         categoria: "whisky",
         volume: "1000ml",
         preco: 169.90,
+        fardo_qtd: 0,
+        fardo_preco: 0,
         estoque_qtd: 12,
         imagem: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2012,8 +1764,10 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         id: "prod-4",
         nome: "Cachaça Tradicional Pitú",
         categoria: "destilados",
-        volume: "Lata 350ml ||PACKS:[{\"nome\":\"Fardo c/ 12 un\",\"qtd\":12,\"preco\":65}]",
+        volume: "Lata 350ml",
         preco: 6.00,
+        fardo_qtd: 12,
+        fardo_preco: 65.00,
         estoque_qtd: 48,
         imagem: "https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2024,6 +1778,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         categoria: "vinhos",
         volume: "750ml",
         preco: 45.00,
+        fardo_qtd: 0,
+        fardo_preco: 0,
         estoque_qtd: 20,
         imagem: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2032,8 +1788,10 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         id: "prod-6",
         nome: "Energético Red Bull Energy Drink",
         categoria: "sem-alcool",
-        volume: "250ml ||PACKS:[{\"nome\":\"Pack c/ 4 un\",\"qtd\":4,\"preco\":42}]",
+        volume: "250ml",
         preco: 11.50,
+        fardo_qtd: 4,
+        fardo_preco: 42.00,
         estoque_qtd: 60,
         imagem: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2044,6 +1802,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         categoria: "outros",
         volume: "Pacote 5kg",
         preco: 12.00,
+        fardo_qtd: 0,
+        fardo_preco: 0,
         estoque_qtd: 40,
         imagem: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80",
         disponivel: true
@@ -2066,7 +1826,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     let bancoInicializadoFlag = localStorage.getItem('bebidascia_seed_done') === 'true';
     let operacaoEmAndamento = false;
     let idsExcluidosRecentemente = new Set();
-    let selecaoFormatoCatalogo = {};
+    let selecaoFormatoCatalogo = {}; // Armazena se o cliente escolheu 'un' ou 'fardo' para cada card
 
     let periodoVendaAtivo = 'hoje';
     let mesFiltroAtivo = new Date().toISOString().slice(0, 7);
@@ -2099,130 +1859,6 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       key: 'sb_publishable_nKguUMEzeAVWAyDhk_uWjg_bDSmxbb6',
       pin: '1234'
     };
-
-    /* -------------------------------------------------------------
-       FUNÇÕES DE PACOTES / FARDOS E CALCULADORA DE ESTOQUE
-       ------------------------------------------------------------- */
-    function serializarVolumeEPacotes(volumeLimpo, pacotesArr) {
-      const vol = (volumeLimpo || '').trim();
-      if (!Array.isArray(pacotesArr) || pacotesArr.length === 0) {
-        return vol;
-      }
-      return `${vol} ||PACKS:${JSON.stringify(pacotesArr)}`;
-    }
-
-    function normalizarProdutoPacotes(prod) {
-      if (!prod) return prod;
-      let rawVol = String(prod.volume || '');
-      let pacotes = Array.isArray(prod.pacotes) ? prod.pacotes : [];
-
-      if (rawVol.includes('||PACKS:')) {
-        const partes = rawVol.split('||PACKS:');
-        rawVol = partes[0].trim();
-        try {
-          const parsed = JSON.parse(partes[1]);
-          if (Array.isArray(parsed)) pacotes = parsed;
-        } catch (e) {
-          console.warn('Falha ao ler pacotes do produto:', e);
-        }
-      }
-
-      return {
-        ...prod,
-        volume: rawVol,
-        pacotes: pacotes
-      };
-    }
-
-    function toggleCalcEstoque() {
-      const box = document.getElementById('boxCalcEstoque');
-      if (!box) return;
-      box.classList.toggle('hidden');
-      atualizarPreviewCalcEstoque();
-    }
-
-    function atualizarPreviewCalcEstoque() {
-      const pacotes = parseInt(document.getElementById('calcQtdPacotes')?.value) || 0;
-      const un = parseInt(document.getElementById('calcUnPorPacote')?.value) || 0;
-      const total = pacotes * un;
-      const el = document.getElementById('calcResultadoUn');
-      if (el) el.innerText = `${total} unidades`;
-    }
-
-    function aplicarCalcEstoque(somarAoExistente) {
-      const pacotes = parseInt(document.getElementById('calcQtdPacotes')?.value) || 0;
-      const un = parseInt(document.getElementById('calcUnPorPacote')?.value) || 0;
-      const calculado = pacotes * un;
-      const inputEstoque = document.getElementById('prodEstoqueQtd');
-
-      if (!inputEstoque || calculado <= 0) return;
-
-      const atual = parseInt(inputEstoque.value) || 0;
-      inputEstoque.value = somarAoExistente ? (atual + calculado) : calculado;
-      document.getElementById('boxCalcEstoque')?.classList.add('hidden');
-      showToast(`Estoque definido para ${inputEstoque.value} unidades!`, 'success');
-    }
-
-    function adicionarLinhaPacote(nomePadrao = '', qtdPadrao = 12, precoPadrao = '') {
-      const container = document.getElementById('listaPacotesForm');
-      if (!container) return;
-
-      const precoUn = parseFloat(document.getElementById('prodPreco')?.value) || 0;
-      let precoSugerido = precoPadrao;
-      if (precoSugerido === '' && precoUn > 0 && qtdPadrao > 1) {
-        precoSugerido = (precoUn * qtdPadrao * 0.92).toFixed(2);
-      }
-
-      const div = document.createElement('div');
-      div.className = 'linha-pacote-item grid grid-cols-12 gap-1.5 items-center bg-gray-950 p-2 rounded-xl border border-gray-800';
-      div.innerHTML = `
-        <div class="col-span-5">
-          <label class="block text-[9px] text-slate-500">Nome do Pacote</label>
-          <input type="text" placeholder="Ex: Fardo c/ 12" value="${nomePadrao}" class="pacote-nome w-full bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-[11px] text-white focus:outline-none focus:border-amber-500" required>
-        </div>
-        <div class="col-span-3">
-          <label class="block text-[9px] text-slate-500">Qtd Unid.</label>
-          <input type="number" min="2" placeholder="12" value="${qtdPadrao}" class="pacote-qtd w-full bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-[11px] text-amber-400 font-bold focus:outline-none focus:border-amber-500" required>
-        </div>
-        <div class="col-span-3">
-          <label class="block text-[9px] text-slate-500">Preço Pacote (R$)</label>
-          <input type="number" step="0.01" min="0.01" placeholder="0,00" value="${precoSugerido}" class="pacote-preco w-full bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-[11px] text-emerald-400 font-bold focus:outline-none focus:border-amber-500" required>
-        </div>
-        <div class="col-span-1 flex justify-end pt-3">
-          <button type="button" onclick="this.closest('.linha-pacote-item').remove()" class="p-1.5 text-slate-500 hover:text-red-400 transition" title="Remover pacote">
-            <i class="fa-solid fa-trash-can text-xs"></i>
-          </button>
-        </div>
-      `;
-      container.appendChild(div);
-    }
-
-    function coletarPacotesDoFormulario() {
-      const linhas = document.querySelectorAll('#listaPacotesForm .linha-pacote-item');
-      const lista = [];
-      linhas.forEach(row => {
-        const nome = row.querySelector('.pacote-nome')?.value.trim();
-        const qtd = parseInt(row.querySelector('.pacote-qtd')?.value) || 0;
-        const preco = parseFloat(row.querySelector('.pacote-preco')?.value) || 0;
-        if (nome && qtd >= 2 && preco > 0) {
-          lista.push({
-            nome,
-            qtd,
-            preco: Number(preco.toFixed(2))
-          });
-        }
-      });
-      return lista.sort((a, b) => a.qtd - b.qtd);
-    }
-
-    function renderizarPacotesNoFormulario(pacotes = []) {
-      const container = document.getElementById('listaPacotesForm');
-      if (!container) return;
-      container.innerHTML = '';
-      if (Array.isArray(pacotes)) {
-        pacotes.forEach(p => adicionarLinhaPacote(p.nome, p.qtd, p.preco));
-      }
-    }
 
     /* -------------------------------------------------------------
        INICIALIZAÇÃO DA APLICAÇÃO
@@ -2283,7 +1919,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     }
 
     /* -------------------------------------------------------------
-       VERIFICAÇÃO DE DIAS E HORÁRIOS DE FUNCIONAMENTO
+       VERIFICAÇÃO DE HORÁRIO DE FUNCIONAMENTO
        ------------------------------------------------------------- */
     function verificarStatusHorarioFuncionamento() {
       const agora = new Date();
@@ -2300,7 +1936,6 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       if (!configDia) return;
 
       let aberto = false;
-
       if (configDia.aberto) {
         const inicio = configDia.inicio;
         const fim = configDia.fim;
@@ -2566,7 +2201,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     }
 
     /* -------------------------------------------------------------
-       CARRINHO E BAIXA AUTOMÁTICA DE UNIDADES / PACOTES
+       CARRINHO E BAIXA AUTOMÁTICA DE UNIDADE / FARDO
        ------------------------------------------------------------- */
     function removerDoCarrinho(cartItemId) {
       carrinho = carrinho.filter(c => c.cartItemId !== cartItemId);
@@ -2658,7 +2293,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
           <div class="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-500">
             <i class="fa-solid fa-wine-glass text-3xl mb-2 text-slate-600"></i>
             <p class="text-xs font-semibold text-slate-400">Seu pedido está vazio.</p>
-            <p class="text-[11px] text-slate-600 mt-0.5">Selecione suas bebidas geladas (unidade ou fardo)!</p>
+            <p class="text-[11px] text-slate-600 mt-0.5">Selecione suas bebidas geladas favoritas!</p>
           </div>
         `;
         return;
@@ -2726,8 +2361,10 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
             id: prod.id,
             nome: prod.nome,
             categoria: prod.categoria,
-            volume: serializarVolumeEPacotes(prod.volume, prod.pacotes),
+            volume: prod.volume,
             preco: prod.preco,
+            fardo_qtd: prod.fardo_qtd || 0,
+            fardo_preco: prod.fardo_preco || 0,
             estoque_qtd: prod.estoque_qtd,
             disponivel: prod.disponivel,
             imagem: prod.imagem
@@ -2855,12 +2492,12 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       const salvos = localStorage.getItem('bebidascia_produtos');
       if (salvos) {
         try {
-          produtos = JSON.parse(salvos).map(normalizarProdutoPacotes);
+          produtos = JSON.parse(salvos);
         } catch (e) {
-          produtos = ESTOQUE_LOCAL_PADRAO.map(normalizarProdutoPacotes);
+          produtos = [...ESTOQUE_LOCAL_PADRAO];
         }
       } else {
-        produtos = ESTOQUE_LOCAL_PADRAO.map(normalizarProdutoPacotes);
+        produtos = [...ESTOQUE_LOCAL_PADRAO];
         salvarProdutosLocalmente();
       }
       renderizarCatalogo();
@@ -2927,8 +2564,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       filtrarProdutos();
     }
 
-    function selecionarFormatoCard(prodId, opcaoKey) {
-      selecaoFormatoCatalogo[prodId] = opcaoKey;
+    function selecionarFormatoCard(prodId, formato) {
+      selecaoFormatoCatalogo[prodId] = formato; // 'un' ou 'fardo'
       filtrarProdutos();
     }
 
@@ -2940,30 +2577,29 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
       if (!lista || lista.length === 0) {
         grid.innerHTML = '';
-        if (empty) empty.classList.remove('hidden');
+        if (empty) empty.classList.add('hidden'); // Ajustado para não piscar
         return;
       }
 
       if (empty) empty.classList.add('hidden');
 
-      grid.innerHTML = lista.map(rawItem => {
-        const item = normalizarProdutoPacotes(rawItem);
+      grid.innerHTML = lista.map(item => {
         const estoqueAtual = parseInt(item.estoque_qtd) ?? 0;
         const temEstoque = item.disponivel && estoqueAtual > 0;
-        const pacotes = Array.isArray(item.pacotes) ? item.pacotes : [];
+        const temFardo = (parseInt(item.fardo_qtd) || 0) > 1 && (parseFloat(item.fardo_preco) || 0) > 0;
 
-        const selKey = selecaoFormatoCatalogo[item.id] !== undefined ? selecaoFormatoCatalogo[item.id] : 'un';
+        const formatoEscolhido = selecaoFormatoCatalogo[item.id] || 'un';
         let precoExibido = item.preco;
-        let labelExibida = 'Preço Unid.';
-        let fatorSelecionado = 1;
+        let labelExibida = 'Unidade Avulsa';
+        let fatorUnidades = 1;
 
-        if (selKey !== 'un' && pacotes[selKey]) {
-          precoExibido = pacotes[selKey].preco;
-          labelExibida = pacotes[selKey].nome;
-          fatorSelecionado = pacotes[selKey].qtd;
+        if (formatoEscolhido === 'fardo' && temFardo) {
+          precoExibido = item.fardo_preco;
+          labelExibida = `Fardo c/ ${item.fardo_qtd} un`;
+          fatorUnidades = item.fardo_qtd;
         }
 
-        const podeComprarFormato = temEstoque && estoqueAtual >= fatorSelecionado;
+        const podeComprar = temEstoque && estoqueAtual >= fatorUnidades;
 
         return `
         <div class="product-card bg-[#111827] border ${temEstoque ? 'border-gray-800/80 hover:border-amber-500/40' : 'border-red-950/40 opacity-75'} rounded-2xl overflow-hidden flex flex-col justify-between p-3 group relative shadow-md">
@@ -2992,31 +2628,24 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
             <h4 class="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug">${item.nome}</h4>
             <p class="text-[11px] text-slate-400 mt-0.5">${item.volume || ''}</p>
 
-            ${pacotes.length > 0 ? `
+            ${temFardo ? `
               <div class="mt-2 pt-2 border-t border-gray-800/70">
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Escolha como comprar:</span>
-                <div class="flex flex-wrap gap-1">
+                <div class="grid grid-cols-2 gap-1">
                   <button 
                     type="button"
                     onclick="selecionarFormatoCard('${item.id}', 'un')"
-                    class="px-2 py-1 rounded-lg text-[10px] font-bold transition border ${selKey === 'un' ? 'bg-amber-500 text-black border-amber-400 shadow' : 'bg-gray-900 text-slate-300 border-gray-800 hover:border-gray-700'}"
+                    class="py-1 px-1.5 rounded-lg text-[10px] font-bold transition border ${formatoEscolhido === 'un' ? 'bg-amber-500 text-black border-amber-400 shadow' : 'bg-gray-900 text-slate-300 border-gray-800 hover:border-gray-700'}"
                   >
                     1 Unid.
                   </button>
-                  ${pacotes.map((pk, idx) => {
-                    const semEstoquePk = estoqueAtual < pk.qtd;
-                    const ativo = String(selKey) === String(idx);
-                    return `
-                      <button 
-                        type="button"
-                        onclick="selecionarFormatoCard('${item.id}', ${idx})"
-                        ${semEstoquePk ? 'title="Estoque insuficiente para este pacote"' : ''}
-                        class="px-2 py-1 rounded-lg text-[10px] font-bold transition border ${ativo ? 'bg-amber-500 text-black border-amber-400 shadow' : 'bg-gray-900 text-slate-300 border-gray-800 hover:border-gray-700'} ${semEstoquePk ? 'opacity-40' : ''}"
-                      >
-                        ${pk.nome}
-                      </button>
-                    `;
-                  }).join('')}
+                  <button 
+                    type="button"
+                    onclick="selecionarFormatoCard('${item.id}', 'fardo')"
+                    ${estoqueAtual < item.fardo_qtd ? 'title="Estoque insuficiente para o fardo"' : ''}
+                    class="py-1 px-1.5 rounded-lg text-[10px] font-bold transition border ${formatoEscolhido === 'fardo' ? 'bg-amber-500 text-black border-amber-400 shadow' : 'bg-gray-900 text-slate-300 border-gray-800 hover:border-gray-700'} ${estoqueAtual < item.fardo_qtd ? 'opacity-40' : ''}"
+                  >
+                    Fardo c/ ${item.fardo_qtd}
+                  </button>
                 </div>
               </div>
             ` : ''}
@@ -3030,11 +2659,11 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
             <button 
               onclick="adicionarAoCarrinho('${item.id}')"
-              ${!podeComprarFormato ? 'disabled' : ''}
-              class="px-3 py-2 rounded-xl ${podeComprarFormato ? 'bg-amber-500 hover:bg-amber-400 active:scale-95 text-black' : 'bg-gray-800 text-slate-600 cursor-not-allowed'} font-bold text-xs flex items-center justify-center gap-1.5 transition shadow"
+              ${!podeComprar ? 'disabled' : ''}
+              class="px-3 py-2 rounded-xl ${podeComprar ? 'bg-amber-500 hover:bg-amber-400 active:scale-95 text-black' : 'bg-gray-800 text-slate-600 cursor-not-allowed'} font-bold text-xs flex items-center justify-center gap-1.5 transition shadow"
             >
               <i class="fa-solid fa-cart-plus text-xs"></i>
-              <span>${podeComprarFormato ? 'Pedir' : 'Sem Est.'}</span>
+              <span>${podeComprar ? 'Pedir' : 'Sem Est.'}</span>
             </button>
           </div>
 
@@ -3056,34 +2685,31 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     }
 
     function adicionarAoCarrinho(id) {
-      const prodRaw = produtos.find(p => p.id === id);
-      if (!prodRaw || !prodRaw.disponivel) return;
+      const prod = produtos.find(p => p.id === id);
+      if (!prod || !prod.disponivel) return;
 
-      const prod = normalizarProdutoPacotes(prodRaw);
-      const estoqueDisponivel = parseInt(prod.estoque_qtd) || 0;
-      const selKey = selecaoFormatoCatalogo[id] !== undefined ? selecaoFormatoCatalogo[id] : 'un';
-      const pacotes = Array.isArray(prod.pacotes) ? prod.pacotes : [];
-
+      const formatoEscolhido = selecaoFormatoCatalogo[id] || 'un';
       let formatoLabel = 'Unidade Avulsa';
       let fatorUnidades = 1;
       let precoEscolhido = prod.preco;
 
-      if (selKey !== 'un' && pacotes[selKey]) {
-        formatoLabel = pacotes[selKey].nome;
-        fatorUnidades = parseInt(pacotes[selKey].qtd) || 1;
-        precoEscolhido = parseFloat(pacotes[selKey].preco) || prod.preco;
+      if (formatoEscolhido === 'fardo' && (parseInt(prod.fardo_qtd) || 0) > 1) {
+        formatoLabel = `Fardo c/ ${prod.fardo_qtd} un`;
+        fatorUnidades = prod.fardo_qtd;
+        precoEscolhido = prod.fardo_preco;
       }
 
+      const estoqueDisponivel = parseInt(prod.estoque_qtd) || 0;
       const unJaNoCarrinho = carrinho
         .filter(c => c.produtoId === prod.id)
         .reduce((acc, c) => acc + (c.quantidade * (c.fatorUnidades || 1)), 0);
 
       if (unJaNoCarrinho + fatorUnidades > estoqueDisponivel) {
-        showToast(`Estoque insuficiente! Você tem ${estoqueDisponivel} un disponíveis.`, 'error');
+        showToast(`Estoque insuficiente! Restam ${estoqueDisponivel} un.`, 'error');
         return;
       }
 
-      const cartItemId = `${prod.id}__${selKey}`;
+      const cartItemId = `${prod.id}__${formatoEscolhido}`;
       const itemNoCarrinho = carrinho.find(c => c.cartItemId === cartItemId);
 
       if (itemNoCarrinho) {
@@ -3208,9 +2834,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
       if (empty) empty.classList.add('hidden');
 
-      tbody.innerHTML = lista.map(rawItem => {
-        const item = normalizarProdutoPacotes(rawItem);
-        const pacotes = Array.isArray(item.pacotes) ? item.pacotes : [];
+      tbody.innerHTML = lista.map(item => {
+        const temFardo = (parseInt(item.fardo_qtd) || 0) > 1 && (parseFloat(item.fardo_preco) || 0) > 0;
 
         return `
         <tr class="hover:bg-gray-800/40 transition">
@@ -3219,16 +2844,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
               <img src="${item.imagem || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70'}" class="w-8 h-8 rounded-lg object-cover border border-gray-800" onerror="this.src='https://placehold.co/80x80/1e293b/f59e0b?text=B%26C'">
               <div>
                 <p class="font-bold text-white text-xs truncate max-w-[160px] sm:max-w-xs">${item.nome}</p>
-                <span class="text-[10px] text-slate-400">${item.volume || 'Vol. não inf.'} • <strong class="text-emerald-400">Estoque: ${item.estoque_qtd ?? 0} un</strong></span>
-                ${pacotes.length > 0 ? `
-                  <div class="flex flex-wrap gap-1 mt-1">
-                    ${pacotes.map(pk => `
-                      <span class="px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-[9px] text-amber-300 font-semibold">
-                        ${pk.nome}: R$ ${Number(pk.preco).toFixed(2).replace('.', ',')}
-                      </span>
-                    `).join('')}
-                  </div>
-                ` : ''}
+                <span class="text-[10px] text-slate-400">Unid: <strong class="text-amber-400">R$ ${item.preco.toFixed(2).replace('.', ',')}</strong></span>
+                ${temFardo ? `<span class="text-[10px] text-slate-400 ml-2">Fardo c/${item.fardo_qtd}: <strong class="text-emerald-400">R$ ${item.fardo_preco.toFixed(2).replace('.', ',')}</strong></span>` : ''}
               </div>
             </div>
           </td>
@@ -3239,9 +2856,8 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
             </span>
           </td>
 
-          <td class="py-2.5 px-3 font-bold text-amber-400">
-            R$ ${item.preco.toFixed(2).replace('.', ',')}
-            <span class="block text-[9px] text-slate-500 font-normal">por unid.</span>
+          <td class="py-2.5 px-3 font-bold text-emerald-400">
+            ${item.estoque_qtd ?? 0} un
           </td>
 
           <td class="py-2.5 px-3">
@@ -3341,13 +2957,12 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         }
       }
 
-      showToast(`Status de "${prod.nome}" alterado para ${prod.disponivel ? 'Disponível' : 'Esgotado'}.`, 'info');
+      showToast(`Status alterado para ${prod.disponivel ? 'Disponível' : 'Esgotado'}.`, 'info');
     }
 
     function editarProduto(id) {
-      const prodRaw = produtos.find(p => p.id === id);
-      if (!prodRaw) return;
-      const prod = normalizarProdutoPacotes(prodRaw);
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
 
       document.getElementById('prodEditId').value = prod.id;
       document.getElementById('prodNome').value = prod.nome;
@@ -3355,10 +2970,10 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       document.getElementById('prodVolume').value = prod.volume || '';
       document.getElementById('prodPreco').value = prod.preco;
       document.getElementById('prodEstoqueQtd').value = prod.estoque_qtd ?? 0;
+      document.getElementById('prodFardoQtd').value = prod.fardo_qtd || 0;
+      document.getElementById('prodFardoPreco').value = prod.fardo_preco || '';
       document.getElementById('prodImagem').value = prod.imagem || '';
       document.getElementById('prodDisponivel').checked = !!prod.disponivel;
-
-      renderizarPacotesNoFormulario(prod.pacotes || []);
 
       fotoBase64Atual = prod.imagem || '';
       if (fotoBase64Atual) {
@@ -3376,7 +2991,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     function cancelarEdicaoProduto() {
       document.getElementById('prodEditId').value = '';
       document.getElementById('formProdutoDono').reset();
-      renderizarPacotesNoFormulario([]);
+      document.getElementById('prodFardoQtd').value = '12';
       removerFotoPrevia();
 
       document.getElementById('tituloFormDono').innerText = 'Cadastrar Bebida';
@@ -3392,12 +3007,13 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       const editId = document.getElementById('prodEditId').value;
       const nome = document.getElementById('prodNome').value.trim();
       const categoria = document.getElementById('prodCategoria').value;
-      const volumeLimpo = document.getElementById('prodVolume').value.trim();
+      const volume = document.getElementById('prodVolume').value.trim();
       const preco = parseFloat(document.getElementById('prodPreco').value);
       const estoque_qtd = parseInt(document.getElementById('prodEstoqueQtd').value) || 0;
+      const fardo_qtd = parseInt(document.getElementById('prodFardoQtd').value) || 0;
+      const fardo_preco = parseFloat(document.getElementById('prodFardoPreco').value) || 0;
       const disponivel = document.getElementById('prodDisponivel').checked;
       const imagem = fotoBase64Atual || document.getElementById('prodImagem').value.trim();
-      const pacotes = coletarPacotesDoFormulario();
 
       if (!nome || isNaN(preco)) {
         showToast('Preencha os campos obrigatórios corretamente.', 'error');
@@ -3413,40 +3029,29 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       const idFinal = editId || ('prod-' + Date.now());
       idsExcluidosRecentemente.delete(String(idFinal));
 
-      const dadosProdutoLocal = {
+      const dadosProduto = {
         id: idFinal,
         nome,
         categoria,
-        volume: volumeLimpo,
-        pacotes,
+        volume: volume || '',
         preco: Number(preco.toFixed(2)),
+        fardo_qtd: fardo_qtd > 1 ? fardo_qtd : 0,
+        fardo_preco: fardo_qtd > 1 && fardo_preco > 0 ? Number(fardo_preco.toFixed(2)) : 0,
         estoque_qtd,
         disponivel,
         imagem: imagem || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70',
         created_at: new Date().toISOString()
       };
 
-      const dadosParaSupabase = {
-        id: idFinal,
-        nome,
-        categoria,
-        volume: serializarVolumeEPacotes(volumeLimpo, pacotes),
-        preco: Number(preco.toFixed(2)),
-        estoque_qtd,
-        disponivel,
-        imagem: dadosProdutoLocal.imagem,
-        created_at: dadosProdutoLocal.created_at
-      };
-
       if (editId) {
         const idx = produtos.findIndex(p => p.id === editId);
         if (idx !== -1) {
-          produtos[idx] = { ...produtos[idx], ...dadosProdutoLocal };
+          produtos[idx] = { ...produtos[idx], ...dadosProduto };
         } else {
-          produtos.unshift(dadosProdutoLocal);
+          produtos.unshift(dadosProduto);
         }
       } else {
-        produtos.unshift(dadosProdutoLocal);
+        produtos.unshift(dadosProduto);
       }
 
       localStorage.setItem('bebidascia_seed_done', 'true');
@@ -3457,9 +3062,9 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
       if (supabaseClient) {
         try {
-          let { error } = await supabaseClient.from('produtos').upsert([dadosParaSupabase]);
+          let { error } = await supabaseClient.from('produtos').upsert([dadosProduto]);
           if (error) {
-            const { created_at, ...dadosSemData } = dadosParaSupabase;
+            const { created_at, ...dadosSemData } = dadosProduto;
             await supabaseClient.from('produtos').upsert([dadosSemData]);
           }
         } catch (err) {
@@ -3482,26 +3087,15 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         showToast('Conecte o Supabase primeiro.', 'error');
         return;
       }
-      const listaFormatada = produtos.map(p => ({
-        id: String(p.id),
-        nome: p.nome,
-        categoria: p.categoria,
-        volume: serializarVolumeEPacotes(p.volume, p.pacotes),
-        preco: Number(p.preco),
-        estoque_qtd: parseInt(p.estoque_qtd) || 0,
-        disponivel: !!p.disponivel,
-        imagem: p.imagem || ''
-      }));
-
       try {
-        const { error } = await supabaseClient.from('produtos').upsert(listaFormatada);
+        const { error } = await supabaseClient.from('produtos').upsert(produtos);
         if (error) {
-          showToast('Alerta ao publicar no Supabase: ' + error.message, 'error');
+          showToast('Erro ao publicar: ' + error.message, 'error');
         } else {
           showToast('Todo o estoque foi publicado na nuvem para todos os clientes!', 'success');
         }
       } catch (e) {
-        showToast('Erro de conexão ao publicar estoque.', 'error');
+        showToast('Erro de conexão ao publicar.', 'error');
       }
     }
 
@@ -3811,7 +3405,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     }
 
     /* -------------------------------------------------------------
-       TRATAMENTO DE IMAGENS
+       TRATAMENTO DE IMAGENS (Câmera, Galeria ou Link)
        ------------------------------------------------------------- */
     function processarFotoInput(input) {
       if (!input.files || !input.files[0]) return;
@@ -4041,7 +3635,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
         return `
           <tr class="hover:bg-gray-800/40 transition">
             <td class="py-2.5 px-3 font-semibold text-white">${cat.nome}</td>
-            <td class="py-2.5 px-3 text-slate-300 font-bold">${cat.qtd} itens</td>
+            <td class="py-2.5 px-3 text-slate-300 font-bold">${cat.qtd} un</td>
             <td class="py-2.5 px-3 text-emerald-400 font-bold">R$ ${cat.total.toFixed(2).replace('.', ',')}</td>
             <td class="py-2.5 px-3">
               <div class="flex items-center gap-2">
@@ -4124,22 +3718,21 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
     function aoSelecionarProdutoAvulso() {
       const select = document.getElementById('vendaAvulsaProduto');
       const selectFormato = document.getElementById('vendaAvulsaFormato');
-      const prodRaw = produtos.find(p => p.id === select.value);
+      const prod = produtos.find(p => p.id === select.value);
 
-      if (!prodRaw || !selectFormato) return;
-      const prod = normalizarProdutoPacotes(prodRaw);
-      const pacotes = Array.isArray(prod.pacotes) ? prod.pacotes : [];
+      if (!prod || !selectFormato) return;
+      const temFardo = (parseInt(prod.fardo_qtd) || 0) > 1 && (parseFloat(prod.fardo_preco) || 0) > 0;
 
-      let htmlOpcoes = `<option value="1" data-preco="${prod.preco}" data-nome="Unidade Avulsa">Unidade Avulsa (1 un) - R$ ${prod.preco.toFixed(2).replace('.', ',')}</option>`;
-      pacotes.forEach(pk => {
-        htmlOpcoes += `<option value="${pk.qtd}" data-preco="${pk.preco}" data-nome="${pk.nome}">${pk.nome} (${pk.qtd} un) - R$ ${Number(pk.preco).toFixed(2).replace('.', ',')}</option>`;
-      });
+      let htmlOpcoes = `<option value="1" data-preco="${prod.preco}" data-nome="Unidade Avulsa">1x Unidade Avulsa - R$ ${prod.preco.toFixed(2).replace('.', ',')}</option>`;
+      if (temFardo) {
+        htmlOpcoes += `<option value="${prod.fardo_qtd}" data-preco="${prod.fardo_preco}" data-nome="Fardo c/ ${prod.fardo_qtd} un">1x Fardo c/ ${prod.fardo_qtd} un - R$ ${prod.fardo_preco.toFixed(2).replace('.', ',')}</option>`;
+      }
 
       selectFormato.innerHTML = htmlOpcoes;
       aoMudarFormatoVendaAvulsa();
     }
 
-    function aoMudarFormatoVendaAvulsa() {
+    function aoMudarFormaVendaAvulsa() {
       const selectFormato = document.getElementById('vendaAvulsaFormato');
       const opt = selectFormato?.selectedOptions[0];
       if (opt) {
@@ -4161,7 +3754,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
       document.getElementById('vendaAvulsaTotalTxt').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
       const elAbate = document.getElementById('vendaAvulsaAbateTxt');
       if (elAbate) {
-        elAbate.innerText = `Abate do estoque: ${totalUnidadesAbater} ${totalUnidadesAbater === 1 ? 'unidade' : 'unidades'}`;
+        elAbate.innerText = `Abate do estoque: ${totalUnidadesAbater} un`;
       }
     }
 
@@ -4195,7 +3788,7 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
       fecharModalVendaAvulsa();
       renderizarRelatorioVendas();
-      showToast(`Venda registrada! Foram descontadas ${qtd * fator} un do estoque.`, 'success');
+      showToast(`Venda registrada! Descontadas ${qtd * fator} un do estoque.`, 'success');
     }
 
     /* -------------------------------------------------------------
@@ -4262,13 +3855,11 @@ GRANT ALL ON TABLE public.fiados TO anon, authenticated, service_role;</pre>
 
         if ((!data || data.length === 0) && !bancoInicializadoFlag) {
           await supabaseClient.from('produtos').upsert(ESTOQUE_LOCAL_PADRAO);
-          produtos = ESTOQUE_LOCAL_PADRAO.map(normalizarProdutoPacotes);
+          produtos = [...ESTOQUE_LOCAL_PADRAO];
           localStorage.setItem('bebidascia_seed_done', 'true');
           bancoInicializadoFlag = true;
         } else if (data && data.length > 0) {
-          const dadosValidosNuvem = data
-            .filter(item => !idsExcluidosRecentemente.has(String(item.id)))
-            .map(normalizarProdutoPacotes);
+          const dadosValidosNuvem = data.filter(item => !idsExcluidosRecentemente.has(String(item.id)));
           const idsDaNuvem = new Set(dadosValidosNuvem.map(item => String(item.id)));
           
           const itensLocaisNovos = produtos.filter(p => 
