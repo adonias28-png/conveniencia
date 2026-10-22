@@ -1705,55 +1705,171 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     </div>
   </div>
 
+  <!-- ================= MODAL DE LOGIN PIN DO DONO (SEM PROMPT NATIVO) ================= -->
+  <div id="modalPinDono" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-sm bg-[#111827] border border-gray-800 rounded-3xl p-6 shadow-2xl relative text-center">
+      <button type="button" onclick="fecharModalPinDono()" class="absolute right-4 top-4 text-slate-500 hover:text-white">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl mx-auto mb-3">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h3 class="font-bold text-base text-white">Área Restrita do Dono</h3>
+      <p class="text-xs text-slate-400 mt-1 mb-4">Digite a senha / PIN de administrador para gerenciar a BEBIDAS & CIA</p>
+      
+      <form onsubmit="confirmarPinDonoModal(event)" class="space-y-3">
+        <input 
+          type="password" 
+          id="inputPinAcessoModal" 
+          placeholder="Digite o PIN (Padrão: 1234)" 
+          required
+          class="w-full bg-gray-900 border border-gray-800 focus:border-amber-500 rounded-xl px-4 py-3 text-center text-sm tracking-widest font-black text-white placeholder-slate-500 focus:outline-none"
+        >
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button 
+            type="button" 
+            onclick="fecharModalPinDono()" 
+            class="py-2.5 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-slate-300 font-semibold text-xs transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition shadow-lg shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-1.5"
+          >
+            <i class="fa-solid fa-unlock"></i>
+            <span>Entrar</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL DE CONFIRMAÇÃO GENÉRICO ================= -->
+  <div id="modalConfirmGenerico" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-sm bg-[#111827] border border-gray-800 rounded-3xl p-5 shadow-2xl relative text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl mx-auto mb-3">
+        <i class="fa-solid fa-circle-question"></i>
+      </div>
+      <h3 id="tituloConfirmGenerico" class="font-bold text-base text-white">Confirmar Ação</h3>
+      <p id="textoConfirmGenerico" class="text-xs text-slate-300 mt-1">Deseja continuar?</p>
+
+      <div class="grid grid-cols-2 gap-2 mt-5">
+        <button 
+          type="button" 
+          onclick="fecharModalConfirmGenerico()" 
+          class="py-2.5 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-slate-300 font-semibold text-xs transition"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          id="btnAcaoConfirmGenerico"
+          class="py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition shadow-lg shadow-red-600/30 active:scale-95"
+        >
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= NOTIFICAÇÃO TOAST ================= -->
   <div id="toastContainer" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
   <script>
     /* -------------------------------------------------------------
-       BUSCA DE IMAGENS NA WEB E GALERIA INTELIGENTE
+       MODAL DE CONFIRMAÇÃO GENÉRICO (SUBSTITUI WINDOW.CONFIRM)
+       ------------------------------------------------------------- */
+    let acaoConfirmadaCallback = null;
+
+    function abrirConfirmacaoCustom(titulo, mensagem, callback) {
+      document.getElementById('tituloConfirmGenerico').innerText = titulo || 'Confirmar Ação';
+      document.getElementById('textoConfirmGenerico').innerText = mensagem || 'Deseja realmente prosseguir?';
+      acaoConfirmadaCallback = callback;
+      const btn = document.getElementById('btnAcaoConfirmGenerico');
+      btn.onclick = () => {
+        const fn = acaoConfirmadaCallback;
+        fecharModalConfirmGenerico();
+        if (typeof fn === 'function') fn();
+      };
+      document.getElementById('modalConfirmGenerico').classList.remove('hidden');
+    }
+
+    function fecharModalConfirmGenerico() {
+      document.getElementById('modalConfirmGenerico').classList.add('hidden');
+      acaoConfirmadaCallback = null;
+    }
+
+    /* -------------------------------------------------------------
+       BUSCA DE IMAGENS NA WEB E GALERIA INTELIGENTE AMPLIADA
        ------------------------------------------------------------- */
     const BANCO_FOTOS_BEBIDAS = [
-      // Cervejas
-      { tags: ['heineken', 'cerveja', 'long neck'], titulo: 'Heineken Long Neck', url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['corona', 'cerveja', 'long neck', 'extra'], titulo: 'Corona Extra', url: 'https://images.unsplash.com/photo-1538488881522-4321453a9943?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['brahma', 'cerveja', 'lata', 'duplo malte', 'chopp'], titulo: 'Cerveja Brahma / Chopp', url: 'https://images.unsplash.com/photo-1608270190989-c56df3d2e293?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['skol', 'cerveja', 'lata', 'pilsen'], titulo: 'Cerveja Skol Lata / Garrafa', url: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['amstel', 'cerveja', 'puro malte'], titulo: 'Cerveja Amstel Puro Malte', url: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['budweiser', 'cerveja', 'bud'], titulo: 'Cerveja Budweiser', url: 'https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['stella', 'stella artois', 'cerveja'], titulo: 'Stella Artois', url: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['cerveja', 'artesanal', 'ipa', 'pilsen'], titulo: 'Cerveja Artesanal no Gelo', url: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&auto=format&fit=crop&q=80' },
+      // Brahma - Múltiplas variações
+      { tags: ['brahma', 'cerveja', 'duplo malte', 'puro malte'], titulo: 'Brahma Duplo Malte (Lata / Garrafa)', url: 'https://images.unsplash.com/photo-1608270190989-c56df3d2e293?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['brahma', 'cerveja', 'chopp', 'lata', 'litrao'], titulo: 'Brahma Chopp Tradicional Lata', url: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['brahma', 'cerveja', 'gelada', 'copo', 'balde'], titulo: 'Brahma Gelada no Balde com Gelo', url: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['brahma', 'cerveja', 'zero', 'sem alcool'], titulo: 'Brahma 0.0% Sem Álcool', url: 'https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['brahma', 'cerveja', 'garrafa', '600ml', 'litrao'], titulo: 'Brahma Garrafa 600ml / Litrão', url: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&auto=format&fit=crop&q=80' },
 
-      // Whiskys
-      { tags: ['johnnie walker', 'red label', 'black label', 'whisky'], titulo: 'Johnnie Walker Black Label', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['jack daniels', 'jack daniel', 'whiskey', 'bourbon'], titulo: 'Jack Daniel\'s Tennessee Whiskey', url: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['chivas', 'whisky', 'chivas regal', '12 anos'], titulo: 'Whisky Chivas Regal', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['white horse', 'whisky', 'cavalo branco'], titulo: 'Whisky Escocês Premium', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['whisky', 'whiskey', 'gelo', 'copo'], titulo: 'Whisky com Gelo', url: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=600&auto=format&fit=crop&q=80' },
+      // Cervejas Mais Vendidas no Brasil
+      { tags: ['skol', 'cerveja', 'lata', 'pilsen'], titulo: 'Cerveja Skol Pilsen Lata', url: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['skol', 'cerveja', 'puro malte', 'garrafa'], titulo: 'Skol Puro Malte Gelada', url: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['heineken', 'cerveja', 'long neck', 'garrafa'], titulo: 'Heineken Long Neck 330ml', url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['heineken', 'cerveja', 'lata', 'barril', 'chope'], titulo: 'Heineken Lata / Barril 5L', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['corona', 'cerveja', 'extra', 'long neck', 'limao'], titulo: 'Corona Extra Long Neck com Limão', url: 'https://images.unsplash.com/photo-1538488881522-4321453a9943?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['amstel', 'cerveja', 'puro malte', 'lata'], titulo: 'Amstel Puro Malte Lata', url: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['budweiser', 'cerveja', 'bud', 'long neck', 'lata'], titulo: 'Budweiser American Lager', url: 'https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['stella', 'stella artois', 'cerveja', 'puro malte'], titulo: 'Stella Artois Long Neck Cálice', url: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['spaten', 'cerveja', 'munich', 'puro malte'], titulo: 'Spaten Munich Puro Malte', url: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['eisenbahn', 'cerveja', 'pilsen', 'ipa'], titulo: 'Eisenbahn Pilsen / Artesanal', url: 'https://images.unsplash.com/photo-1608270190989-c56df3d2e293?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['itaipava', 'cerveja', 'pilsen', '100 malte'], titulo: 'Itaipava 100% Malte Gelada', url: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['antarctica', 'cerveja', 'original', 'boa'], titulo: 'Antarctica Original 600ml / Lata', url: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80' },
 
-      // Cachaças & Destilados
-      { tags: ['pitu', 'pitú', 'cachaca', 'cachaça', 'pinga', 'aguardente'], titulo: 'Cachaça Tradicional / Pitú', url: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['51', 'cachaça 51', 'cachaca 51', 'pinga'], titulo: 'Cachaça Brasileira / Caninha', url: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['ypióca', 'ypiota', 'cachaca ouro', 'cachaça envelhecida'], titulo: 'Cachaça Envelhecida Ouro', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['vodka', 'smirnoff', 'absolut'], titulo: 'Vodka Importada Garrafa', url: 'https://images.unsplash.com/photo-1550985543-f47f38aeee65?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['gin', 'tanqueray', 'beefeater', 'gordons'], titulo: 'Gin Tanqueray / Garrafa', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['tequila', 'jose cuervo', 'shot'], titulo: 'Tequila Ouro / Prata', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+      // Whiskys & Bourbon
+      { tags: ['johnnie walker', 'red label', 'whisky'], titulo: 'Johnnie Walker Red Label 1L', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['johnnie walker', 'black label', 'whisky', '12 anos'], titulo: 'Johnnie Walker Black Label 12 Anos', url: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['jack daniels', 'jack daniel', 'whiskey', 'bourbon', 'no 7'], titulo: 'Jack Daniel\'s Old No. 7 Tennessee', url: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['jack daniels', 'honey', 'maca verde', 'apple', 'fire'], titulo: 'Jack Daniel\'s Honey / Apple', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['chivas', 'chivas regal', 'whisky', '12 anos'], titulo: 'Chivas Regal 12 Anos Blended Scotch', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['white horse', 'whisky', 'cavalo branco'], titulo: 'Whisky White Horse Tradicional', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['ballantines', 'ballantine', 'whisky', 'finest'], titulo: 'Ballantine\'s Finest Scotch Whisky', url: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['old parr', 'whisky', '12 anos', 'grand'], titulo: 'Whisky Grand Old Parr 12 Anos', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['black white', 'whisky', 'black and white'], titulo: 'Whisky Black & White', url: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=600&auto=format&fit=crop&q=80' },
+
+      // Cachaças Tradicionais & Destilados Brasileiros
+      { tags: ['pitu', 'pitú', 'cachaca', 'cachaça', 'aguardente', 'lata', 'garrafa'], titulo: 'Cachaça Pitú Garrafa / Lata', url: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['pitu', 'gold', 'ouro', 'cachaca envelhecida'], titulo: 'Pitú Gold Envelhecida', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['51', 'cachaça 51', 'cachaca 51', 'pinga', 'caninha'], titulo: 'Cachaça 51 Tradicional Pirassununga', url: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['ypioca', 'ypióca', 'ouro', 'prata', 'palha'], titulo: 'Cachaça Ypióca Empalhada Ouro', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['velho barreiro', 'cachaca', 'barreiro'], titulo: 'Cachaça Velho Barreiro Tradicional', url: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['matuta', 'cachaca matuta', 'umburana'], titulo: 'Cachaça Matuta Umburana / Cristal', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['salinas', 'cachaca artesanal', 'mineira'], titulo: 'Cachaça Artesanal Salinas', url: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&auto=format&fit=crop&q=80' },
+
+      // Vodkas, Gin & Tequilas
+      { tags: ['vodka', 'smirnoff', 'garrafa'], titulo: 'Vodka Smirnoff Red 21', url: 'https://images.unsplash.com/photo-1550985543-f47f38aeee65?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['vodka', 'absolut', 'importada'], titulo: 'Vodka Absolut Regular Original', url: 'https://images.unsplash.com/photo-1550985543-f47f38aeee65?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['gin', 'tanqueray', 'london dry'], titulo: 'Gin Tanqueray London Dry', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['gin', 'gordons', 'beefeater', 'rosa'], titulo: 'Gin Gordon\'s / Beefeater Pink', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['tequila', 'jose cuervo', 'ouro', 'prata'], titulo: 'Tequila Jose Cuervo Especial Ouro', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['campari', 'aperitivo', 'bitter'], titulo: 'Campari Bitter Garrafa', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80' },
 
       // Vinhos & Espumantes
-      { tags: ['vinho', 'tinto', 'cabernet', 'malbec', 'casillero'], titulo: 'Vinho Tinto Cabernet / Malbec', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['vinho suave', 'garrafa vinho', 'vinho seco'], titulo: 'Garrafa de Vinho Fino', url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['espumante', 'champagne', 'chandon', 'prosecco'], titulo: 'Espumante / Champagne Gelado', url: 'https://images.unsplash.com/photo-1568644396922-5c3bfae12521?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['vinho', 'casillero', 'cabernet', 'tinto'], titulo: 'Vinho Casillero del Diablo Cabernet', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['vinho', 'pergola', 'sangue de boi', 'suave'], titulo: 'Vinho Pérgola Tinto Suave Garrafão', url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['espumante', 'chandon', 'brut', 'prosecco'], titulo: 'Espumante Chandon Brut / Demi-Sec', url: 'https://images.unsplash.com/photo-1568644396922-5c3bfae12521?w=600&auto=format&fit=crop&q=80' },
 
-      // Sem Álcool & Energéticos
-      { tags: ['red bull', 'energetico', 'energético', 'redbull'], titulo: 'Red Bull Energy Drink', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['monster', 'monster energy', 'energetico'], titulo: 'Energético Monster Lata', url: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['coca cola', 'coca-cola', 'refrigerante', 'refris'], titulo: 'Coca-Cola Gelada Lata / Garrafa', url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['guarana', 'guaraná antarctica', 'refrigerante'], titulo: 'Refrigerante Guaraná Gelado', url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['agua', 'água mineral', 'com gas', 'sem gas'], titulo: 'Água Mineral Garrafa', url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80' },
+      // Energéticos, Refrigerantes & Sucos
+      { tags: ['red bull', 'energetico', 'redbull', 'lata', 'tropical'], titulo: 'Red Bull Energy Drink Tradicional', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['red bull', 'tropical', 'melancia', 'pitaya'], titulo: 'Red Bull Edições Especiais Sabores', url: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['monster', 'monster energy', 'energetico', 'verde'], titulo: 'Energético Monster Energy 473ml', url: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['coca cola', 'coca-cola', 'refrigerante', '2l', 'lata'], titulo: 'Coca-Cola Original 2L / Lata 350ml', url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['guarana', 'guaraná antarctica', 'refris'], titulo: 'Guaraná Antarctica Gelado', url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['agua', 'água mineral', 'com gas', 'sem gas'], titulo: 'Água Mineral Crystal / Indaiá', url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80' },
 
-      // Conveniência, Gelo & Petiscos
-      { tags: ['gelo', 'cubo', 'pacote de gelo', 'saco de gelo'], titulo: 'Gelo em Cubos Filtrado', url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['carvao', 'carvão', 'churrasco', 'saco carvão'], titulo: 'Carvão Vegetal para Churrasco', url: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&auto=format&fit=crop&q=80' },
-      { tags: ['snack', 'petisco', 'amendoim', 'salgadinho'], titulo: 'Petisco / Amendoim para Bebida', url: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=600&auto=format&fit=crop&q=80' }
+      // Conveniência, Gelo, Carvão e Petiscos
+      { tags: ['gelo', 'cubo', 'pacote de gelo', 'saco de gelo', '5kg'], titulo: 'Gelo em Cubos Filtrado Pacote 5kg', url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['carvao', 'carvão', 'churrasco', 'saco', 'eucalipto'], titulo: 'Carvão Vegetal Especial para Churrasco', url: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&auto=format&fit=crop&q=80' },
+      { tags: ['snack', 'petisco', 'amendoim', 'salgadinho', 'torcida'], titulo: 'Petisco Salgadinho / Amendoim Crocante', url: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=600&auto=format&fit=crop&q=80' }
     ];
 
     function abrirModalBuscaImagens() {
@@ -1785,13 +1901,13 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       container.innerHTML = `
         <div class="h-48 flex flex-col items-center justify-center text-slate-400">
           <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-500 mb-2"></i>
-          <span class="text-xs">Buscando as melhores imagens...</span>
+          <span class="text-xs">Buscando fotos de alta definição...</span>
         </div>
       `;
 
       let fotosEncontradas = [];
 
-      // 1. Busca primeiro no banco inteligente local otimizado
+      // 1. Busca ampla no banco curado interno (multi-palavras)
       if (query) {
         const palavrasBusca = query.split(' ').filter(w => w.length > 1);
         fotosEncontradas = BANCO_FOTOS_BEBIDAS.filter(item => {
@@ -1803,25 +1919,56 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         });
       }
 
-      // 2. Se a busca local retornou poucas fotos e o usuário digitou algo específico, busca na Wikipédia aberta
-      if (fotosEncontradas.length < 4 && query) {
+      // 2. Consulta à API de produtos Open Food Facts Brasil (Especialista em rótulos reais de bebidas)
+      if (query) {
         try {
-          const termoBusca = encodeURIComponent(queryOriginal);
-          const urlWiki = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${termoBusca}+beverage+drink&gsrlimit=6&prop=pageimages&pithumbsize=600&format=json&origin=*`;
+          const termoClean = encodeURIComponent(queryOriginal);
+          const urlOFF = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${termoClean}&search_simple=1&action=process&json=1&page_size=16`;
           
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3500);
+          const controllerOFF = new AbortController();
+          const timeoutOFF = setTimeout(() => controllerOFF.abort(), 3500);
 
-          const res = await fetch(urlWiki, { signal: controller.signal });
-          clearTimeout(timeoutId);
+          const resOFF = await fetch(urlOFF, { signal: controllerOFF.signal });
+          clearTimeout(timeoutOFF);
 
-          if (res.ok) {
-            const data = await res.json();
-            if (data.query && data.query.pages) {
-              Object.values(data.query.pages).forEach(p => {
+          if (resOFF.ok) {
+            const dataOFF = await resOFF.json();
+            if (dataOFF && Array.isArray(dataOFF.products)) {
+              dataOFF.products.forEach(p => {
+                const imgUrl = p.image_front_url || p.image_url || p.image_small_url;
+                if (imgUrl && !imgUrl.endsWith('.svg')) {
+                  fotosEncontradas.push({
+                    titulo: p.product_name || p.generic_name || queryOriginal,
+                    url: imgUrl
+                  });
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Busca no OpenFoodFacts abortada:', e);
+        }
+      }
+
+      // 3. Consulta complementar ao Wikimedia Commons (Fotos de garrafas, latas e logotipos)
+      if (fotosEncontradas.length < 8 && query) {
+        try {
+          const termoWiki = encodeURIComponent(queryOriginal);
+          const urlWiki = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${termoWiki}+beer+bottle+can&gsrlimit=12&prop=pageimages&pithumbsize=600&format=json&origin=*`;
+          
+          const controllerWiki = new AbortController();
+          const timeoutWiki = setTimeout(() => controllerWiki.abort(), 3500);
+
+          const resWiki = await fetch(urlWiki, { signal: controllerWiki.signal });
+          clearTimeout(timeoutWiki);
+
+          if (resWiki.ok) {
+            const dataWiki = await resWiki.json();
+            if (dataWiki.query && dataWiki.query.pages) {
+              Object.values(dataWiki.query.pages).forEach(p => {
                 if (p.thumbnail && p.thumbnail.source) {
                   fotosEncontradas.push({
-                    titulo: p.title,
+                    titulo: p.title.replace(/^File:/i, '').replace(/\.[^/.]+$/, ''),
                     url: p.thumbnail.source
                   });
                 }
@@ -1829,39 +1976,51 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
             }
           }
         } catch (e) {
-          console.warn('Busca externa web abortada ou sem conexão:', e);
+          console.warn('Busca na Wikimedia abortada:', e);
         }
       }
 
-      // 3. Fallback: Se ainda estiver vazio ou o usuário só abriu sem digitar nada, exibe o catálogo completo de bebidas prontas
+      // 4. Fallback: se nada foi encontrado ou query em branco, carrega todas as fotos recomendadas
       if (fotosEncontradas.length === 0) {
         fotosEncontradas = BANCO_FOTOS_BEBIDAS;
       }
 
-      // Remove eventuais URLs duplicadas
-      const mapaUrls = new Set();
+      // Desduplicação de URLs
+      const urlsVistas = new Set();
       const fotosFinais = fotosEncontradas.filter(f => {
-        if (mapaUrls.has(f.url)) return false;
-        mapaUrls.add(f.url);
+        if (!f.url || urlsVistas.has(f.url)) return false;
+        urlsVistas.add(f.url);
         return true;
       });
 
       container.innerHTML = `
+        <div class="p-1 mb-2 text-[11px] text-slate-400 flex items-center justify-between">
+          <span>Encontradas <strong>${fotosFinais.length}</strong> fotos para "<em>${queryOriginal || 'Todas'}</em>":</span>
+          <span class="text-[10px] text-amber-400">Clique para selecionar</span>
+        </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-1">
-          ${fotosFinais.map(f => `
+          ${fotosFinais.map(f => {
+            const safeTitle = (f.titulo || 'Bebida').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
             <div 
-              onclick="selecionarFotoWeb('${f.url}', '${f.titulo.replace(/'/g, "\\'")}')" 
-              class="cursor-pointer group relative bg-gray-900 border border-gray-800 hover:border-amber-500 rounded-xl overflow-hidden p-1.5 transition flex flex-col items-center hover:scale-[1.02] shadow"
+              onclick="selecionarFotoWeb('${f.url}', '${safeTitle}')" 
+              class="cursor-pointer group relative bg-gray-900 border border-gray-800 hover:border-amber-500 rounded-2xl overflow-hidden p-2 transition flex flex-col items-center hover:scale-[1.02] shadow-lg"
             >
-              <div class="w-full aspect-square overflow-hidden rounded-lg bg-black/40 relative">
-                <img src="${f.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" onerror="this.src='https://placehold.co/300x300/1e293b/f59e0b?text=BEBIDAS+%26+CIA'">
+              <div class="w-full aspect-square overflow-hidden rounded-xl bg-black/60 relative flex items-center justify-center p-1">
+                <img 
+                  src="${f.url}" 
+                  class="w-full h-full object-contain group-hover:scale-105 transition duration-300" 
+                  loading="lazy" 
+                  onerror="this.src='https://placehold.co/300x300/1e293b/f59e0b?text=BEBIDAS+%26+CIA'"
+                >
               </div>
-              <p class="text-[10px] text-slate-300 font-semibold truncate w-full text-center mt-1.5 px-1">${f.titulo}</p>
-              <span class="text-[9px] text-amber-400 font-bold mt-0.5 opacity-90 group-hover:text-amber-300">
-                <i class="fa-solid fa-check mr-0.5"></i>Usar esta
+              <p class="text-[10px] text-slate-300 font-bold truncate w-full text-center mt-2 px-1 leading-tight">${f.titulo}</p>
+              <span class="text-[9px] text-amber-400 font-bold mt-1 inline-flex items-center gap-1 opacity-90 group-hover:text-amber-300">
+                <i class="fa-solid fa-circle-check text-[8px]"></i>Usar esta foto
               </span>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       `;
     }
@@ -1964,6 +2123,8 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     let pollingInterval = null;
     let supabaseClient = null;
     let bancoInicializadoFlag = localStorage.getItem('bebidascia_seed_done') === 'true';
+    let operacaoEmAndamento = false;
+    let idsExcluidosRecentemente = new Set();
 
     let periodoVendaAtivo = 'hoje'; // 'hoje' ou 'mes'
     let mesFiltroAtivo = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
@@ -2455,16 +2616,6 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       `).join('');
     }
 
-    function toggleCampoEndereco() {
-      const tipo = document.getElementById('clienteTipoEntrega').value;
-      const campo = document.getElementById('campoEnderecoContainer');
-      if (tipo === 'balcao') {
-        campo.classList.add('hidden');
-      } else {
-        campo.classList.remove('hidden');
-      }
-    }
-
     function enviarPedidoWhatsApp() {
       if (carrinho.length === 0) {
         showToast('Adicione bebidas ao pedido.', 'error');
@@ -2748,17 +2899,31 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         return;
       }
 
-      const pinDigitado = prompt('Área Restrita do Dono\nDigite o PIN de acesso:');
-      if (!pinDigitado) return;
+      const inputPin = document.getElementById('inputPinAcessoModal');
+      if (inputPin) inputPin.value = '';
+      document.getElementById('modalPinDono').classList.remove('hidden');
+      setTimeout(() => {
+        if (inputPin) inputPin.focus();
+      }, 100);
+    }
 
+    function fecharModalPinDono() {
+      document.getElementById('modalPinDono').classList.add('hidden');
+    }
+
+    function confirmarPinDonoModal(e) {
+      e.preventDefault();
+      const pinDigitado = document.getElementById('inputPinAcessoModal').value.trim();
       const pinCorreto = configSupabase.pin || '1234';
+
       if (pinDigitado === pinCorreto) {
         sessaoDonoAtiva = true;
         document.getElementById('txtBtnDono').innerText = 'Painel Aberto';
+        fecharModalPinDono();
         alternarVisao('dono');
         showToast('Acesso de administrador autorizado!', 'success');
       } else {
-        showToast('PIN incorreto.', 'error');
+        showToast('PIN incorreto. Tente novamente.', 'error');
       }
     }
 
@@ -2900,6 +3065,9 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       const prod = produtos.find(p => p.id === id);
       const nomeRemovido = prod ? prod.nome : 'Produto';
 
+      operacaoEmAndamento = true;
+      idsExcluidosRecentemente.add(String(id));
+
       // 1. Remove da memória local imediatamente
       produtos = produtos.filter(p => p.id !== id);
       salvarProdutosLocalmente();
@@ -2919,15 +3087,16 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
           const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
           if (error) {
             console.warn('Erro ao deletar no Supabase:', error);
-            showToast('Erro ao remover no Supabase: ' + error.message, 'error');
-            return;
+            showToast('Removido localmente (aviso Supabase: ' + error.message + ')', 'info');
+          } else {
+            console.log(`Produto ${id} deletado com sucesso no Supabase.`);
           }
-          console.log(`Produto ${id} deletado com sucesso no Supabase.`);
         } catch (err) {
           console.warn('Falha de conexão ao deletar no Supabase:', err);
         }
       }
 
+      operacaoEmAndamento = false;
       showToast(`"${nomeRemovido}" excluído do estoque e da nuvem!`, 'success');
     }
 
@@ -2996,6 +3165,7 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     async function salvarProdutoDono(e) {
       e.preventDefault();
 
+      const btnSubmit = document.getElementById('btnSubmitProd');
       const editId = document.getElementById('prodEditId').value;
       const nome = document.getElementById('prodNome').value.trim();
       const categoria = document.getElementById('prodCategoria').value;
@@ -3010,20 +3180,29 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         return;
       }
 
+      // Desabilita o botão para evitar duplo clique
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50');
+      }
+
+      operacaoEmAndamento = true;
       const idFinal = editId || ('prod-' + Date.now());
+      idsExcluidosRecentemente.delete(String(idFinal));
 
       const dadosProduto = {
         id: idFinal,
         nome,
         categoria,
-        volume,
-        preco,
+        volume: volume || '',
+        preco: Number(preco.toFixed(2)),
         estoque_qtd,
         disponivel,
         imagem: imagem || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70',
         created_at: new Date().toISOString()
       };
 
+      // Atualiza a memória local imediatamente
       if (editId) {
         const idx = produtos.findIndex(p => p.id === editId);
         if (idx !== -1) {
@@ -3035,77 +3214,40 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         produtos.unshift(dadosProduto);
       }
 
-      // Usa UPSERT para garantir que grave no Supabase mesmo se o item for novo ou antigo
+      localStorage.setItem('bebidascia_seed_done', 'true');
+      bancoInicializadoFlag = true;
+      salvarProdutosLocalmente();
+      renderizarTabelaDono();
+      renderizarCatalogo();
+
+      // Salva no Supabase garantindo persistência (tenta com created_at e fallback sem created_at caso a coluna não exista)
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient.from('produtos').upsert([dadosProduto]);
+          let { error } = await supabaseClient.from('produtos').upsert([dadosProduto]);
           if (error) {
-            console.warn('Erro ao salvar produto no Supabase:', error);
+            const { created_at, ...dadosSemData } = dadosProduto;
+            const retry = await supabaseClient.from('produtos').upsert([dadosSemData]);
+            error = retry.error;
+          }
+          if (error) {
+            console.warn('Erro ao salvar no Supabase:', error);
+            showToast('Salvo localmente (alerta nuvem: ' + error.message + ')', 'info');
           } else {
-            console.log('Produto salvo na nuvem com sucesso:', idFinal);
+            console.log('Produto persistido no Supabase:', idFinal);
           }
         } catch (err) {
           console.warn('Falha de conexão Supabase:', err);
         }
       }
 
-      salvarProdutosLocalmente();
+      operacaoEmAndamento = false;
       cancelarEdicaoProduto();
-      renderizarTabelaDono();
-      renderizarCatalogo();
-      showToast(`"${nome}" salvo e sincronizado na nuvem!`, 'success');
-    }
-
-    async function toggleDisponibilidade(id) {
-      const prod = produtos.find(p => p.id === id);
-      if (!prod) return;
-
-      prod.disponivel = !prod.disponivel;
-      salvarProdutosLocalmente();
-      renderizarTabelaDono();
-      renderizarCatalogo();
-
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('produtos').upsert([{
-            id: prod.id,
-            nome: prod.nome,
-            categoria: prod.categoria,
-            volume: prod.volume,
-            preco: prod.preco,
-            estoque_qtd: prod.estoque_qtd,
-            imagem: prod.imagem,
-            disponivel: prod.disponivel
-          }]);
-        } catch (e) {
-          console.warn('Erro ao atualizar no Supabase:', e);
-        }
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('opacity-50');
       }
 
-      showToast(`Status de "${prod.nome}" alterado para ${prod.disponivel ? 'Disponível' : 'Esgotado'}.`, 'info');
-    }
-
-    async function excluirProduto(id) {
-      const prod = produtos.find(p => p.id === id);
-      if (!prod) return;
-
-      const confirmar = window.confirm(`Deseja realmente remover "${prod.nome}" do estoque?`);
-      if (!confirmar) return;
-
-      produtos = produtos.filter(p => p.id !== id);
-      salvarProdutosLocalmente();
-      renderizarTabelaDono();
-      renderizarCatalogo();
-
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('produtos').delete().eq('id', id);
-        } catch (err) {
-          console.warn('Erro ao deletar no Supabase:', err);
-        }
-      }
-
-      showToast(`"${prod.nome}" removido do catálogo.`, 'info');
+      showToast(`"${nome}" salvo com sucesso!`, 'success');
     }
 
     /* -------------------------------------------------------------
@@ -3366,26 +3508,29 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       showToast(marcarPago ? `Conta de ${fiado.nome_cliente} marcada como paga!` : `Fiado de ${fiado.nome_cliente} reaberto.`, 'success');
     }
 
-    async function excluirFiado(id) {
+    function excluirFiado(id) {
       const fiado = fiados.find(f => f.id === id);
       if (!fiado) return;
 
-      const confirmar = window.confirm(`Deseja realmente remover o registro de "${fiado.nome_cliente}"?`);
-      if (!confirmar) return;
+      abrirConfirmacaoCustom(
+        'Remover Fiado?',
+        `Deseja realmente remover o registro de "${fiado.nome_cliente}" da caderneta?`,
+        async () => {
+          fiados = fiados.filter(f => f.id !== id);
+          salvarFiadosLocalmente();
+          renderizarListaFiados();
 
-      fiados = fiados.filter(f => f.id !== id);
-      salvarFiadosLocalmente();
-      renderizarListaFiados();
+          if (supabaseClient) {
+            try {
+              await supabaseClient.from('fiados').delete().eq('id', id);
+            } catch (err) {
+              console.warn('Erro ao deletar fiado no Supabase:', err);
+            }
+          }
 
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('fiados').delete().eq('id', id);
-        } catch (err) {
-          console.warn('Erro ao deletar fiado no Supabase:', err);
+          showToast(`Registro de "${fiado.nome_cliente}" excluído.`, 'info');
         }
-      }
-
-      showToast(`Registro de "${fiado.nome_cliente}" excluído.`, 'info');
+      );
     }
 
     function enviarCobrancaWhatsApp(id) {
@@ -3491,116 +3636,6 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       } else {
         removerFotoPrevia();
       }
-    }
-
-    /* -------------------------------------------------------------
-       BUSCA DE IMAGENS NA WEB
-       ------------------------------------------------------------- */
-    function abrirModalBuscaImagens() {
-      const nomeDigitado = document.getElementById('prodNome').value.trim();
-      const input = document.getElementById('webSearchQuery');
-      if (nomeDigitado && input) {
-        input.value = nomeDigitado;
-        pesquisarFotosWeb();
-      }
-      document.getElementById('webImageSearchModal').classList.remove('hidden');
-    }
-
-    function fecharModalBuscaImagens() {
-      document.getElementById('webImageSearchModal').classList.add('hidden');
-    }
-
-    function pesquisarTermoPredefinido(termo) {
-      document.getElementById('webSearchQuery').value = termo;
-      pesquisarFotosWeb();
-    }
-
-    async function pesquisarFotosWeb() {
-      const query = document.getElementById('webSearchQuery').value.trim();
-      const container = document.getElementById('webSearchResults');
-
-      if (!query) {
-        showToast('Digite o nome da bebida para pesquisar.', 'info');
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="h-48 flex flex-col items-center justify-center text-slate-400">
-          <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-500 mb-2"></i>
-          <span class="text-xs">Buscando imagens na web...</span>
-        </div>
-      `;
-
-      try {
-        const urlWiki = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query + ' beverage bottle')}&gsrlimit=8&prop=pageimages&pithumbsize=600&format=json&origin=*`;
-        const res = await fetch(urlWiki);
-        const data = await res.json();
-
-        let fotos = [];
-
-        if (data.query && data.query.pages) {
-          Object.values(data.query.pages).forEach(p => {
-            if (p.thumbnail && p.thumbnail.source) {
-              fotos.push({
-                url: p.thumbnail.source,
-                titulo: p.title
-              });
-            }
-          });
-        }
-
-        const presets = [
-          { termo: 'heineken', url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=500&auto=format&fit=crop&q=70', titulo: 'Cerveja Heineken' },
-          { termo: 'corona', url: 'https://images.unsplash.com/photo-1538488881522-4321453a9943?w=500&auto=format&fit=crop&q=70', titulo: 'Cerveja Corona' },
-          { termo: 'whisky', url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=500&auto=format&fit=crop&q=70', titulo: 'Whisky Premium' },
-          { termo: 'red bull', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&auto=format&fit=crop&q=70', titulo: 'Red Bull Energy' },
-          { termo: 'gelo', url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500&auto=format&fit=crop&q=70', titulo: 'Gelo em Cubos' },
-          { termo: 'vinho', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70', titulo: 'Garrafa de Vinho' },
-          { termo: 'gin', url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&auto=format&fit=crop&q=70', titulo: 'Garrafa de Gin / Destilado' }
-        ];
-
-        presets.forEach(p => {
-          if (query.toLowerCase().includes(p.termo) || p.termo.includes(query.toLowerCase())) {
-            fotos.unshift(p);
-          }
-        });
-
-        if (fotos.length === 0) {
-          fotos = presets;
-        }
-
-        container.innerHTML = `
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-1">
-            ${fotos.map((f, i) => `
-              <div 
-                onclick="selecionarFotoWeb('${f.url}', '${f.titulo.replace(/'/g, "\\'")}')" 
-                class="cursor-pointer group relative bg-gray-900 border border-gray-800 hover:border-amber-500 rounded-xl overflow-hidden p-1 transition flex flex-col items-center"
-              >
-                <div class="w-full aspect-square overflow-hidden rounded-lg bg-black/40">
-                  <img src="${f.url}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
-                </div>
-                <p class="text-[10px] text-slate-300 font-semibold truncate w-full text-center mt-1.5 px-1">${f.titulo}</p>
-                <span class="text-[9px] text-amber-400 opacity-0 group-hover:opacity-100 transition mt-0.5 font-bold">Usar esta</span>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } catch (err) {
-        container.innerHTML = `
-          <div class="text-center p-6 text-slate-400">
-            <p class="text-xs text-red-400 mb-1">Não foi possível carregar as imagens no momento.</p>
-            <p class="text-[11px] text-slate-500">Tente novamente ou informe um link direto.</p>
-          </div>
-        `;
-      }
-    }
-
-    function selecionarFotoWeb(url, titulo) {
-      fotoBase64Atual = url;
-      document.getElementById('prodImagem').value = url;
-      definirPreviaImagem(url, titulo);
-      fecharModalBuscaImagens();
-      showToast('Foto da Web selecionada!', 'success');
     }
 
     /* -------------------------------------------------------------
@@ -3715,15 +3750,6 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       const totalFat = vendasFiltradas.reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
       let totalQtd = 0;
 
-      const categoriasStats = {
-        'cervejas': { nome: 'Cervejas', qtd: 0, total: 0 },
-        'whisky': { nome: 'Whiskys', qtd: 0, total: 0 },
-        'destilados': { nome: 'Cachaças & Destilados', qtd: 0, total: 0 },
-        'vinhos': { nome: 'Vinhos & Espumantes', qtd: 0, total: 0 },
-        'sem-alcool': 'Energéticos & Refri',
-        'outros': { nome: 'Gelo, Carvão & Snacks', qtd: 0, total: 0 }
-      };
-
       // Inicializa mapa de categorias limpo
       const mapaCats = {
         'cervejas': { nome: 'Cervejas', qtd: 0, total: 0 },
@@ -3821,13 +3847,16 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     }
 
     function zerarHistoricoVendas() {
-      const confirmacao = window.confirm('Deseja realmente apagar o histórico local de vendas?');
-      if (!confirmacao) return;
-
-      vendas = [];
-      salvarHistoricoVendasLocalmente();
-      renderizarRelatorioVendas();
-      showToast('Histórico de vendas reiniciado.', 'info');
+      abrirConfirmacaoCustom(
+        'Limpar Histórico de Vendas?',
+        'Deseja realmente apagar o histórico local de vendas registradas?',
+        () => {
+          vendas = [];
+          salvarHistoricoVendasLocalmente();
+          renderizarRelatorioVendas();
+          showToast('Histórico de vendas reiniciado.', 'info');
+        }
+      );
     }
 
     function abrirModalRegistrarVendaAvulsa() {
@@ -3933,6 +3962,7 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         atualizarStatusSync('on', 'Conectado');
         carregarProdutosSupabase();
         carregarConfiguracoesSupabase();
+        carregarFiadosSupabase();
         iniciarAutoSync();
       } catch (e) {
         console.warn('Erro ao conectar Supabase:', e);
@@ -3941,17 +3971,18 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
     }
 
     async function carregarProdutosSupabase() {
-      if (!supabaseClient) return;
+      if (!supabaseClient || operacaoEmAndamento) return;
       try {
         const { data, error } = await supabaseClient
           .from('produtos')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*');
         
         if (error) {
           console.warn('Erro no fetch Supabase produtos:', error);
           return;
         }
+
+        if (operacaoEmAndamento) return;
 
         // Se o banco na nuvem estiver completamente vazio e o usuário AINDA NÃO tiver configurado o catálogo
         if ((!data || data.length === 0) && !bancoInicializadoFlag) {
@@ -3960,9 +3991,19 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
           produtos = [...ESTOQUE_LOCAL_PADRAO];
           localStorage.setItem('bebidascia_seed_done', 'true');
           bancoInicializadoFlag = true;
-        } else {
-          // Se data veio vazio porque o dono deletou tudo, aceita lista vazia normalmente
-          produtos = data || [];
+        } else if (data && data.length > 0) {
+          // Filtra itens que foram excluídos recentemente pelo dono para não reaparecerem
+          const dadosValidosNuvem = data.filter(item => !idsExcluidosRecentemente.has(String(item.id)));
+          const idsDaNuvem = new Set(dadosValidosNuvem.map(item => String(item.id)));
+          
+          // Preserva itens locais criados pelo dono que ainda não constam na resposta da nuvem
+          const itensLocaisNovos = produtos.filter(p => 
+            !idsDaNuvem.has(String(p.id)) && 
+            !idsExcluidosRecentemente.has(String(p.id)) &&
+            String(p.id).startsWith('prod-')
+          );
+          
+          produtos = [...itensLocaisNovos, ...dadosValidosNuvem];
           localStorage.setItem('bebidascia_seed_done', 'true');
           bancoInicializadoFlag = true;
         }
