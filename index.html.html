@@ -2593,50 +2593,79 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
         return;
       }
 
+      const idFinal = editId || ('prod-' + Date.now());
+
       const dadosProduto = {
+        id: idFinal,
         nome,
         categoria,
         volume,
         preco,
         estoque_qtd,
         disponivel,
-        imagem: imagem || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70'
+        imagem: imagem || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&auto=format&fit=crop&q=70',
+        created_at: new Date().toISOString()
       };
 
       if (editId) {
         const idx = produtos.findIndex(p => p.id === editId);
         if (idx !== -1) {
           produtos[idx] = { ...produtos[idx], ...dadosProduto };
+        } else {
+          produtos.unshift(dadosProduto);
         }
-        if (supabaseClient) {
-          try {
-            await supabaseClient.from('produtos').update(dadosProduto).eq('id', editId);
-          } catch (err) {
-            console.warn('Erro ao atualizar produto no Supabase:', err);
-          }
-        }
-        showToast(`"${nome}" atualizado com sucesso!`, 'success');
       } else {
-        const novoItem = {
-          id: 'prod-' + Date.now(),
-          ...dadosProduto
-        };
-        produtos.unshift(novoItem);
+        produtos.unshift(dadosProduto);
+      }
 
-        if (supabaseClient) {
-          try {
-            await supabaseClient.from('produtos').insert([novoItem]);
-          } catch (err) {
-            console.warn('Erro ao inserir produto no Supabase:', err);
+      // Usa UPSERT para garantir que grave no Supabase mesmo se o item for novo ou antigo
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient.from('produtos').upsert([dadosProduto]);
+          if (error) {
+            console.warn('Erro ao salvar produto no Supabase:', error);
+          } else {
+            console.log('Produto salvo na nuvem com sucesso:', idFinal);
           }
+        } catch (err) {
+          console.warn('Falha de conexão Supabase:', err);
         }
-        showToast(`"${nome}" cadastrado com sucesso!`, 'success');
       }
 
       salvarProdutosLocalmente();
       cancelarEdicaoProduto();
       renderizarTabelaDono();
       renderizarCatalogo();
+      showToast(`"${nome}" salvo e sincronizado na nuvem!`, 'success');
+    }
+
+    async function toggleDisponibilidade(id) {
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
+
+      prod.disponivel = !prod.disponivel;
+      salvarProdutosLocalmente();
+      renderizarTabelaDono();
+      renderizarCatalogo();
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('produtos').upsert([{
+            id: prod.id,
+            nome: prod.nome,
+            categoria: prod.categoria,
+            volume: prod.volume,
+            preco: prod.preco,
+            estoque_qtd: prod.estoque_qtd,
+            imagem: prod.imagem,
+            disponivel: prod.disponivel
+          }]);
+        } catch (e) {
+          console.warn('Erro ao atualizar no Supabase:', e);
+        }
+      }
+
+      showToast(`Status de "${prod.nome}" alterado para ${prod.disponivel ? 'Disponível' : 'Esgotado'}.`, 'info');
     }
 
     async function excluirProduto(id) {
@@ -3498,12 +3527,24 @@ CREATE POLICY "Publico Fiados Escrita" ON public.fiados FOR ALL USING (true);</p
       if (!supabaseClient) return;
       try {
         const { data, error } = await supabaseClient.from('produtos').select('*').order('created_at', { ascending: false });
-        if (!error && data && data.length > 0) {
-          produtos = data;
-          salvarProdutosLocalmente();
-          renderizarCatalogo();
-          renderizarTabelaDono();
+        
+        if (error) {
+          console.warn('Erro no fetch Supabase produtos:', error);
+          return;
         }
+
+        // Se a nuvem ainda estiver vazia, sobe o catálogo padrão inicial para a nuvem automaticamente!
+        if (!data || data.length === 0) {
+          console.log('Banco na nuvem vazio. Enviando produtos iniciais...');
+          await supabaseClient.from('produtos').upsert(ESTOQUE_LOCAL_PADRAO);
+          produtos = [...ESTOQUE_LOCAL_PADRAO];
+        } else {
+          produtos = data;
+        }
+
+        salvarProdutosLocalmente();
+        renderizarCatalogo();
+        renderizarTabelaDono();
       } catch (err) {
         console.warn('Erro no fetch Supabase produtos:', err);
       }
